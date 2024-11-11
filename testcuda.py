@@ -111,3 +111,13 @@ rendered_image, radii, _ = rasterizer(
     medium_bs=sigma_bs,
     medium_attn=sigma_atten
 )
+
+import matplotlib.pyplot as plt
+rendered_image = rendered_image.permute(1, 2, 0)
+
+# 使用 detach() 分离梯度，然后移动到 CPU 并转换为 NumPy
+plt.imshow(rendered_image.detach().cpu().numpy())
+plt.axis('off')  # 可选，去掉坐标轴
+plt.show()
+
+
