@@ -15,10 +15,12 @@ import torch
 from . import _C
 
 def cpu_deep_copy_tuple(input_tuple):
+    # 如果元组中的元素是张量，则在 CPU 上深拷贝，否则保持原样
     copied_tensors = [item.cpu().clone() if isinstance(item, torch.Tensor) else item for item in input_tuple]
     return tuple(copied_tensors)
 
-def rasterize_gaussians(
+def rasterize_gaussians_underwater(
+    # 调用自定义 C++/CUDA 函数实现的高斯分布栅格化，封装调用自定义的CUDA 函数 _C.rasterize_gaussians_underwater
     means3D,
     means2D,
     sh,
@@ -93,9 +95,9 @@ class _RasterizeGaussians(torch.autograd.Function):
         )
 
         # Invoke C++/CUDA rasterizer
-        num_rendered, color, radii, geomBuffer, binningBuffer, imgBuffer, invdepths = _C.rasterize_gaussians(*args)
+        num_rendered, color, radii, geomBuffer, binningBuffer, imgBuffer, invdepths = _C.rasterize_gaussians_underwater(*args)
 
-        # Keep relevant tensors for backward
+        # Keep relevant tensors for backward 保存上下文以便反向传播
         ctx.raster_settings = raster_settings
         ctx.num_rendered = num_rendered
         ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, opacities, geomBuffer, binningBuffer, imgBuffer)
@@ -136,7 +138,7 @@ class _RasterizeGaussians(torch.autograd.Function):
                 raster_settings.debug)
 
         # Compute gradients for relevant tensors by invoking backward method
-        grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_sh, grad_scales, grad_rotations = _C.rasterize_gaussians_backward(*args)        
+        grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_sh, grad_scales, grad_rotations = _C.rasterize_gaussians_backward_underwater(*args)
 
         grads = (
             grad_means3D,
@@ -155,7 +157,7 @@ class _RasterizeGaussians(torch.autograd.Function):
 
         return grads
 
-class GaussianRasterizationSettings(NamedTuple):
+class GaussianRasterizationSettings(NamedTuple): #封装高斯栅格化的渲染参数
     image_height: int
     image_width: int 
     tanfovx : float
@@ -169,6 +171,9 @@ class GaussianRasterizationSettings(NamedTuple):
     prefiltered : bool
     debug : bool
     antialiasing : bool
+    medium_rgb:torch.Tensor
+    medium_bs: torch.Tensor
+    medium_attn: torch.Tensor
 
 
 class GaussianRasterizer(nn.Module):
@@ -188,7 +193,7 @@ class GaussianRasterizer(nn.Module):
         return visible
 
     def forward(self, means3D, means2D, opacities, shs = None, colors_precomp = None, scales = None, rotations = None, cov3D_precomp = None,
-                medium_rgb=None, medium_bs=None, medium_attn=None):
+                medium_rgb=None, medium_bs=None, medium_attn=None):# 检查输入,并调用核心渲染函数
         
         raster_settings = self.raster_settings
 
@@ -220,7 +225,7 @@ class GaussianRasterizer(nn.Module):
         if medium_attn is None:
             medium_attn = torch.zeros_like(medium_rgb).to(means3D.device)
 
-        return rasterize_gaussians(
+        return rasterize_gaussians_underwater(
             means3D,
             means2D,
             shs,
