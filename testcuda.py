@@ -102,9 +102,9 @@ def getProjectionMatrix(znear, zfar, fovX, fovY):
 
 # 定义高斯体的中心点和特征
 pts = np.array([
-    [0, 0, 100],    # 位于正Z轴方向
-    [-0.5, -0, 100],
-    [-0, 10, 100]
+    [0, 0, 10],    # 位于正Z轴方向
+    [-0.2, -0, 10],
+    [-0, 0.2, 10]
 ], dtype=np.float32)
 n = len(pts)  # 高斯体数量
 
@@ -170,9 +170,9 @@ projmatrix = torch.matmul(projmatrix, viewmatrix)
 cam_pos = torch.tensor(cam_pos, dtype=torch.float32, device="cuda")
 
 # 定义介质参数（默认为0）
-c_med = torch.tensor([0.0], dtype=torch.float32, device="cuda")
-sigma_bs = torch.tensor([0.0], dtype=torch.float32, device="cuda")
-sigma_atten = torch.tensor([0.0], dtype=torch.float32, device="cuda")
+c_med = torch.tensor([0.5], dtype=torch.float32, device="cuda")
+sigma_bs = torch.tensor([0.5], dtype=torch.float32, device="cuda")
+sigma_atten = torch.tensor([0.5], dtype=torch.float32, device="cuda")
 
 # 定义背景颜色为黑色
 bg = torch.tensor([0, 0, 0], dtype=torch.float32, device="cuda")
