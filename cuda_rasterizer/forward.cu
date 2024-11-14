@@ -288,7 +288,9 @@ renderCUDA(
 	float* __restrict__ invdepth,
 	float* __restrict__ medium_rgb, //介质颜色
 	float* __restrict__ medium_bs, //介质 \sigma bs
-	float* __restrict__ medium_attn)
+	float* __restrict__ medium_attn,
+	float* __restrict__ colors_enhance
+	)
 {
 	// Identify current tile and associated min/max pixel range.
 	auto block = cg::this_thread_block();
@@ -424,7 +426,8 @@ void FORWARD::render(
 	float* depth,
 	float* medium_rgb,
 	float* medium_bs,
-	float* medium_attn)
+	float* medium_attn,
+	float* colors_enhance)
 {
 	renderCUDA<NUM_CHANNELS> << <grid, block >> > (
 		ranges,
