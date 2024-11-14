@@ -119,7 +119,7 @@ desired_colors = np.array([
     [0.0, 0.0, 0.4]    # 高斯体 3: 蓝色
 ], dtype=np.float32)
 
-# 初始化球谐函数系数为全零，并设置零阶系数为所需颜色
+# 初始化球谐函数系数为全零，并设置零阶系数为所需颜色(固定颜色)
 shs = np.zeros((n, 16, 3), dtype=np.float32)
 shs[:, 0, :] = desired_colors  # 设置零阶系数
 
@@ -143,6 +143,9 @@ R = np.array([
     [0, 1, 0],
     [0, 0, 1]
 ], dtype=np.float32)  # 相机朝向正Z轴
+H = 200
+W = 200
+
 
 # 生成视图矩阵和投影矩阵
 viewmatrix_np = getWorld2View2(R=R, t=cam_pos)
@@ -155,6 +158,9 @@ proj_param = {
     "fovX": 90,  # 水平视场角（度）
     "fovY": 90   # 垂直视场角（度）
 }
+tanfovx = math.tan(math.radians(proj_param["fovX"] / 2))  # 水平视场角的正切
+tanfovy = math.tan(math.radians(proj_param["fovY"] / 2))  # 垂直视场角的正切
+
 
 # 生成世界到视图的转换矩阵，并转换为PyTorch张量
 projmatrix_np = getProjectionMatrix(**proj_param)
@@ -169,10 +175,14 @@ projmatrix = torch.matmul(projmatrix, viewmatrix)
 
 cam_pos = torch.tensor(cam_pos, dtype=torch.float32, device="cuda")
 
-# 定义介质参数（默认为0）
-c_med = torch.tensor([0.5], dtype=torch.float32, device="cuda")
-sigma_bs = torch.tensor([0.5], dtype=torch.float32, device="cuda")
-sigma_atten = torch.tensor([0.5], dtype=torch.float32, device="cuda")
+# 定义介质参数，形状应该是 H, W, 3
+c_med = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
+sigma_bs = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
+sigma_atten = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
+
+# 定义增强颜色参数，形状应该是 H, W, 3
+colors_enhance = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
+
 
 # 定义背景颜色为黑色
 bg = torch.tensor([0, 0, 0], dtype=torch.float32, device="cuda")
@@ -185,10 +195,10 @@ screenspace_points = screenspace_points_h[:, :3] / screenspace_points_h[:, 3:4] 
 
 # 配置高斯光栅化设置
 raster_settings = GaussianRasterizationSettings(
-    image_height=200,                       # 输出图像高度
-    image_width=200,                        # 输出图像宽度
-    tanfovx=math.tan(math.radians(proj_param["fovX"] / 2)),  # 水平视场角的正切
-    tanfovy=math.tan(math.radians(proj_param["fovY"] / 2)),  # 垂直视场角的正切
+    image_height=H,                       # 输出图像高度
+    image_width=W,                        # 输出图像宽度
+    tanfovx=tanfovx,                      # 水平视场角的正切
+    tanfovy=tanfovy,                      # 垂直视场角的正切
     bg=bg,                                  # 背景颜色
     scale_modifier=1.0,                     # 缩放因子
     viewmatrix=viewmatrix,                  # 视图矩阵
@@ -196,11 +206,8 @@ raster_settings = GaussianRasterizationSettings(
     sh_degree=1,                            # 球谐次数
     campos=cam_pos,                         # 相机位置
     prefiltered=False,                      # 是否使用预滤波
-    debug=False,                            # 是否启用调试模式
-    medium_rgb=c_med,                       # 介质颜色
-    medium_bs=sigma_bs,                     # 介质散射系数
-    medium_attn=sigma_atten,                # 介质衰减系数
-    antialiasing=None                      # 抗锯齿设置
+    debug=False,                             # 是否启用调试模式
+    antialiasing=False,                     # 抗锯齿设置
 )
 
 # 初始化高斯光栅化器
@@ -210,7 +217,7 @@ rasterizer = GaussianRasterizer(raster_settings=raster_settings)
 rendered_image, radii, _ = rasterizer(
     means3D=pts,               # 高斯体的3D位置
     means2D=screenspace_points,  # 高斯体在屏幕空间的2D位置
-    shs=shs,                   # 球谐系数
+    shs=shs,                   # 球谐颜色
     colors_precomp=None,       # 预计算颜色（如果有）
     opacities=opacities,       # 透明度
     scales=scales,             # 缩放因子
@@ -218,7 +225,8 @@ rendered_image, radii, _ = rasterizer(
     cov3D_precomp=None,        # 预计算协方差（如果有）
     medium_rgb=c_med,          # 介质颜色
     medium_bs=sigma_bs,        # 介质散射系数
-    medium_attn=sigma_atten    # 介质衰减系数
+    medium_attn=sigma_atten,   # 介质衰减系数
+    colors_enhance = colors_enhance # 增强的颜色
 )
 
 
