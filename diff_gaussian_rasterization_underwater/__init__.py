@@ -13,6 +13,8 @@ from typing import NamedTuple
 import torch.nn as nn
 import torch
 from . import _C
+from typing import Optional
+
 
 def cpu_deep_copy_tuple(input_tuple):
     # 如果元组中的元素是张量，则在 CPU 上深拷贝，否则保持原样
@@ -32,7 +34,8 @@ def rasterize_gaussians_underwater(
     medium_rgb,
     medium_bs,
     medium_attn,
-    raster_settings
+    raster_settings,
+    colors_enhance
 ):
     return _RasterizeGaussians.apply(
         means3D,
@@ -46,7 +49,8 @@ def rasterize_gaussians_underwater(
         medium_rgb,
         medium_bs,
         medium_attn,
-        raster_settings
+        raster_settings,
+        colors_enhance
     )
 
 class _RasterizeGaussians(torch.autograd.Function):
@@ -65,6 +69,7 @@ class _RasterizeGaussians(torch.autograd.Function):
         medium_bs,
         medium_attn,
         raster_settings,
+        colors_enhance
     ):
 
         # Restructure arguments the way that the C++ lib expects them
@@ -80,6 +85,7 @@ class _RasterizeGaussians(torch.autograd.Function):
             medium_rgb,
             medium_bs,
             medium_attn,
+            colors_enhance,
             raster_settings.viewmatrix,
             raster_settings.projmatrix,
             raster_settings.tanfovx,
@@ -171,10 +177,10 @@ class GaussianRasterizationSettings(NamedTuple): #封装高斯栅格化的渲染
     prefiltered : bool
     debug : bool
     antialiasing : bool
-    medium_rgb:torch.Tensor
-    medium_bs: torch.Tensor
-    medium_attn: torch.Tensor
-
+    # medium_rgb:torch.Tensor
+    # medium_bs: torch.Tensor
+    # medium_attn: torch.Tensor
+    # colors_enhance: Optional[torch.Tensor]  # 表示可以为 None
 
 class GaussianRasterizer(nn.Module):
     def __init__(self, raster_settings):
@@ -193,25 +199,32 @@ class GaussianRasterizer(nn.Module):
         return visible
 
     def forward(self, means3D, means2D, opacities, shs = None, colors_precomp = None, scales = None, rotations = None, cov3D_precomp = None,
-                medium_rgb=None, medium_bs=None, medium_attn=None):# 检查输入,并调用核心渲染函数
-        
-        raster_settings = self.raster_settings
+                medium_rgb=None, medium_bs=None, medium_attn=None,colors_enhance =None):
+        # forward函数：检查输入并调用核心渲染函数
+        raster_settings = self.raster_settings# 获取光栅化设置
 
+        # 检查输入的 shs 和 colors_precomp 必须且只能提供一个
         if (shs is None and colors_precomp is None) or (shs is not None and colors_precomp is not None):
             raise Exception('Please provide excatly one of either SHs or precomputed colors!')
-        
+
+        # 检查输入的 scales 和 rotations 必须和 cov3D_precomp 一起使用或者两者都不使用
         if ((scales is None or rotations is None) and cov3D_precomp is None) or ((scales is not None or rotations is not None) and cov3D_precomp is not None):
             raise Exception('Please provide exactly one of either scale/rotation pair or precomputed 3D covariance!')
-        
+
+        # 如果 shs 为 None，则初始化为空 Tensor
         if shs is None:
             shs = torch.Tensor([])
+        # 如果 colors_precomp 为 None，则初始化为空 Tensor
         if colors_precomp is None:
             colors_precomp = torch.Tensor([])
 
+        # 如果 scales 为 None，则初始化为空 Tensor
         if scales is None:
             scales = torch.Tensor([])
+        # 如果 rotations 为 None，则初始化为空 Tensor
         if rotations is None:
             rotations = torch.Tensor([])
+        # 如果 cov3D_precomp 为 None，则初始化为空 Tensor
         if cov3D_precomp is None:
             cov3D_precomp = torch.Tensor([])
 
@@ -237,6 +250,7 @@ class GaussianRasterizer(nn.Module):
             medium_rgb,
             medium_bs,
             medium_attn,
-            raster_settings
+            raster_settings,
+            colors_enhance
         )
 
