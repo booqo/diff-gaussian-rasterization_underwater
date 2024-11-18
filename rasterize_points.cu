@@ -32,7 +32,7 @@ std::function<char*(size_t N)> resizeFunctional(torch::Tensor& t) {
     return lambda;
 }
 
-std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 RasterizeGaussiansCUDA_underwater(
 	const torch::Tensor& background,
 	const torch::Tensor& means3D,
@@ -70,12 +70,18 @@ RasterizeGaussiansCUDA_underwater(
   auto int_opts = means3D.options().dtype(torch::kInt32);
   auto float_opts = means3D.options().dtype(torch::kFloat32);
 
+  torch::Tensor out_image = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts);
   torch::Tensor out_color = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts);
+  torch::Tensor out_med = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts);
+  
   torch::Tensor out_invdepth = torch::full({0, H, W}, 0.0, float_opts);
   float* out_invdepthptr = nullptr;
+  float* out_depthptr = nullptr;
 
   out_invdepth = torch::full({1, H, W}, 0.0, float_opts).contiguous();
-  out_invdepthptr = out_invdepth.data<float>();
+  torch::Tensor out_depth = torch::full({1, H, W}, 0.0, float_opts);
+  out_invdepthptr = out_invdepth.data_ptr<float>();
+  out_depthptr = out_depth.data_ptr<float>();
 
   torch::Tensor radii = torch::full({P}, 0, means3D.options().dtype(torch::kInt32));
   
@@ -112,23 +118,26 @@ RasterizeGaussiansCUDA_underwater(
 		scale_modifier,
 		rotations.contiguous().data_ptr<float>(),
 		cov3D_precomp.contiguous().data<float>(),
-		colors_enhance.contiguous().data<float>(),
-		medium_rgb.contiguous().data<float>(), 
-		medium_bs.contiguous().data<float>(), 
-		medium_attn.contiguous().data<float>(),
+		(float3 *)medium_rgb.contiguous().data_ptr<float>(),   // H W 3
+		(float3 *)medium_bs.contiguous().data_ptr<float>(),   // H W 3
+		(float3 *)medium_attn.contiguous().data_ptr<float>(),  // H W 3
+		(float3 *)colors_enhance.contiguous().data_ptr<float>(),  // H W 3
+		out_image.contiguous().data_ptr<float>(),  // 1 H W
+		out_color.contiguous().data_ptr<float>(),  // 1 H W
+		out_med.contiguous().data_ptr<float>(),  // 1 H W
+		out_depthptr,    // 1 H W
 		viewmatrix.contiguous().data<float>(), 
 		projmatrix.contiguous().data<float>(),
 		campos.contiguous().data<float>(),
 		tan_fovx,
 		tan_fovy,
 		prefiltered,
-		out_color.contiguous().data<float>(),
 		out_invdepthptr,
 		antialiasing,
 		radii.contiguous().data<int>(),
 		debug);
   }
-  return std::make_tuple(rendered, out_color, radii, geomBuffer, binningBuffer, imgBuffer, out_invdepth);
+  return std::make_tuple(rendered, out_image , out_color, out_med, radii, geomBuffer, binningBuffer, imgBuffer, out_invdepth);
 }
 
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>

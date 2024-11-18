@@ -15,14 +15,12 @@
 #include <tuple>
 #include <string>
 	
-std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 RasterizeGaussiansCUDA_underwater(
 	const torch::Tensor& background,
 	const torch::Tensor& means3D,
     const torch::Tensor& colors,
     const torch::Tensor& opacity,
-
-	
 	const torch::Tensor& scales,
 	const torch::Tensor& rotations,
 	const float scale_modifier,
@@ -30,6 +28,7 @@ RasterizeGaussiansCUDA_underwater(
 	const torch::Tensor& medium_rgb,
     const torch::Tensor& medium_bs,
     const torch::Tensor& medium_attn,
+	const torch::Tensor& colors_enhance,
 	const torch::Tensor& viewmatrix,
 	const torch::Tensor& projmatrix,
 	const float tan_fovx, 

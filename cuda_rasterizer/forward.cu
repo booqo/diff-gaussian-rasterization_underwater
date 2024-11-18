@@ -283,13 +283,16 @@ renderCUDA(
 	float* __restrict__ final_T,
 	uint32_t* __restrict__ n_contrib,
 	const float* __restrict__ bg_color,
-	float* __restrict__ out_color,
 	const float* __restrict__ depths,
 	float* __restrict__ invdepth,
-	float* __restrict__ medium_rgb, //介质颜色
-	float* __restrict__ medium_bs, //介质 \sigma bs
-	float* __restrict__ medium_attn,
-	float* __restrict__ colors_enhance
+	const float3* __restrict__ medium_rgb, //介质颜色
+	const float3* __restrict__ medium_bs, //介质 \sigma bs
+	const float3* __restrict__ medium_attn,
+	const float3* __restrict__ colors_enhance,
+	float* __restrict__ out_img,
+    float* __restrict__ out_clr,
+    float* __restrict__ out_med,
+    float* __restrict__ depth_im
 	)
 {
 	// Identify current tile and associated min/max pixel range.
@@ -312,17 +315,66 @@ renderCUDA(
 	int toDo = range.y - range.x;
 
 	// Allocate storage for batches of collectively fetched data.
+
+
 	__shared__ int collected_id[BLOCK_SIZE];
+
 	__shared__ float2 collected_xy[BLOCK_SIZE];
+
+	__shared__ float3 collected_color[BLOCK_SIZE];  //sh color  O
+
 	__shared__ float4 collected_conic_opacity[BLOCK_SIZE];
+	__shared__ float collected_depth[BLOCK_SIZE];
+
+
+
+	__shared__ int collected_id[BLOCK_SIZE];
+
+	__shared__ float collected_x[BLOCK_SIZE];
+	__shared__ float collected_y[BLOCK_SIZE];
+
+	__shared__ float collected_color_x[BLOCK_SIZE];  //sh color  O
+	__shared__ float collected_color_y[BLOCK_SIZE];
+	__shared__ float collected_color_z[BLOCK_SIZE];
+
+	__shared__ float collected_conic_opacity_x[BLOCK_SIZE];
+	__shared__ float collected_conic_opacity_y[BLOCK_SIZE];
+	__shared__ float collected_conic_opacity_z[BLOCK_SIZE];
+	__shared__ float collected_conic_opacity_w[BLOCK_SIZE];
+
+	__shared__ float collected_depth[BLOCK_SIZE];
+
 
 	// Initialize helper variables
 	float T = 1.0f;
 	uint32_t contributor = 0;
 	uint32_t last_contributor = 0;
-	float C[CHANNELS] = { 0 };
 
+	float3 pix_out = {0.f, 0.f, 0.f};
+    float3 pix_clr = {0.f, 0.f, 0.f};
+    float3 pix_medium = {0.f, 0.f, 0.f};
+	float expected_depth = 0.0f;
 	float expected_invdepth = 0.0f;
+
+
+	float prev_depth = 0.f;
+
+	float3 medium_rgb_pix;
+    float3 medium_bs_pix;
+    float3 medium_attn_pix;
+	float3 colors_enhance_pix;
+    float max_medium_attn_pix;
+
+	if (inside) {
+        medium_rgb_pix = medium_rgb[pix_id];
+        medium_bs_pix = medium_bs[pix_id];
+        medium_attn_pix = medium_attn[pix_id];
+		colors_enhance_pix = colors_enhance[pix_id];   //phi
+        prev_depth = 0.f;
+        // get the biggest one of medium_attn_pix xyz
+        max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
+    }
+
 
 	// Iterate over batches until all done or range is complete
 	for (int i = 0; i < rounds; i++, toDo -= BLOCK_SIZE)
@@ -338,8 +390,20 @@ renderCUDA(
 		{
 			int coll_id = point_list[range.x + progress];
 			collected_id[block.thread_rank()] = coll_id;
-			collected_xy[block.thread_rank()] = points_xy_image[coll_id];
-			collected_conic_opacity[block.thread_rank()] = conic_opacity[coll_id];
+
+			collected_x[block.thread_rank()] = points_xy_image[coll_id].x;
+			collected_y[block.thread_rank()] = points_xy_image[coll_id].y;
+
+			collected_color_x[block.thread_rank()] = features[coll_id * CHANNELS + 0];
+			collected_color_y[block.thread_rank()] = features[coll_id * CHANNELS + 1];
+			collected_color_z[block.thread_rank()] = features[coll_id * CHANNELS + 2];
+
+			collected_conic_opacity_x[block.thread_rank()] = conic_opacity[coll_id].x;
+			collected_conic_opacity_y[block.thread_rank()] = conic_opacity[coll_id].y;
+			collected_conic_opacity_z[block.thread_rank()] = conic_opacity[coll_id].z;
+			collected_conic_opacity_w[block.thread_rank()] = conic_opacity[coll_id].w;
+
+			collected_depth[block.thread_rank()] = depths[coll_id];
 		}
 		block.sync();
 
@@ -351,10 +415,18 @@ renderCUDA(
 
 			// Resample using conic matrix (cf. "Surface 
 			// Splatting" by Zwicker et al., 2001)
-			float2 xy = collected_xy[j];
+			float2 xy = {collected_x[j] , collected_y[j] };
+
 			float2 d = { xy.x - pixf.x, xy.y - pixf.y };
-			float4 con_o = collected_conic_opacity[j];
-			float power = -0.5f * (con_o.x * d.x * d.x + con_o.z * d.y * d.y) - con_o.y * d.x * d.y;
+			float cur_depth = collected_depth[j];
+			// float4 con_o = collected_conic_opacity[j];
+			// float power = -0.5f * (con_o.x * d.x * d.x + con_o.z * d.y * d.y) - con_o.y * d.x * d.y;
+			float con_x = collected_conic_opacity_x[j];
+			float con_y = collected_conic_opacity_y[j];
+			float con_z = collected_conic_opacity_z[j];
+			float con_w = collected_conic_opacity_w[j];
+
+			float power = -0.5f * (con_x* d.x * d.x + con_z * d.y * d.y) - con_y * d.x * d.y;
 			if (power > 0.0f)
 				continue;
 
@@ -362,9 +434,11 @@ renderCUDA(
 			// Obtain alpha by multiplying with Gaussian opacity
 			// and its exponential falloff from mean.
 			// Avoid numerical instabilities (see paper appendix). 
-			float alpha = min(0.99f, con_o.w * exp(power));
-			if (alpha < 1.0f / 255.0f)
+			float alpha = min(0.99f, con_w * exp(power));
+			if (alpha * exp(-max_medium_attn_pix * cur_depth) < 1.0f / 255.0f)
 				continue;
+
+
 			float test_T = T * (1 - alpha);
 			if (test_T < 0.0001f)
 			{
@@ -373,17 +447,48 @@ renderCUDA(
 			}
 
 			// Eq. (3) from 3D Gaussian splatting paper.
-			const float vis = alpha * T; //\alpha *T
+			const float vis = alpha * T; //\alpha *T  obj
 			// Eq. (3) from 3D Gaussian splatting paper.
-			for (int ch = 0; ch < CHANNELS; ch++){
-				const float exp_obj = __expf(-medium_attn[CHANNELS * pix_id + ch] * depths[collected_id[j]]); // -\sigam_attn *s_i
-				const float exp_bs = __expf(-medium_bs[CHANNELS * pix_id + ch] * depths[collected_id[j]]); // -\sigam_bs *s_i
-				C[ch] +=exp_obj*features[collected_id[j] * CHANNELS + ch]*vis + exp_bs* medium_rgb[CHANNELS * pix_id + ch] * vis;
-				// C[ch] += features[collected_id[j] * CHANNELS + ch] * alpha * T;
-			}
-			if(invdepth)
-			expected_invdepth += (1 / depths[collected_id[j]]) * alpha * T;
+			// for (int ch = 0; ch < CHANNELS; ch++){
+			// 	const float exp_obj = __expf(-medium_attn[CHANNELS * pix_id + ch] * depths[collected_id[j]]); // -\sigam_attn *s_i
+			// 	const float exp_bs = __expf(-medium_bs[CHANNELS * pix_id + ch] * depths[collected_id[j]]); // -\sigam_bs *s_i
+			// 	C[ch] +=exp_obj*features[collected_id[j] * CHANNELS + ch]*vis + exp_bs* medium_rgb[CHANNELS * pix_id + ch] * vis;
+			// 	// C[ch] += features[collected_id[j] * CHANNELS + ch] * alpha * T;
+			// }
 
+
+			float3 exp_obj;  //exp(-sigma_attn * s_i)
+            exp_obj.x = exp(-medium_attn_pix.x * cur_depth);
+            exp_obj.y = exp(-medium_attn_pix.y * cur_depth);
+            exp_obj.z = exp(-medium_attn_pix.z * cur_depth);  
+
+
+			const float3 color_obj = {collected_color_x[j]*colors_enhance_pix.x, 
+				collected_color_y[j]*colors_enhance_pix.y , collected_color_z[j]*colors_enhance_pix.z}; //s_i
+
+			const float3 c_out = {vis * color_obj.x, vis * color_obj.y, vis * color_obj.z};
+            pix_clr.x = pix_clr.x + c_out.x;
+            pix_clr.y = pix_clr.y + c_out.y;
+            pix_clr.z = pix_clr.z + c_out.z; 
+
+			pix_out.x = pix_out.x + exp_obj.x * c_out.x;
+            pix_out.y = pix_out.y + exp_obj.y * c_out.y;
+            pix_out.z = pix_out.z + exp_obj.z * c_out.z;
+
+			expected_depth = expected_depth + vis * cur_depth;
+
+			if(invdepth)
+				expected_invdepth += (1 / depths[collected_id[j]]) * alpha * T;
+
+			float3 exp_bs;
+            exp_bs.x = exp(-medium_bs_pix.x * prev_depth) - exp(-medium_bs_pix.x * cur_depth);
+            exp_bs.y = exp(-medium_bs_pix.y * prev_depth) - exp(-medium_bs_pix.y * cur_depth);
+            exp_bs.z = exp(-medium_bs_pix.z * prev_depth) - exp(-medium_bs_pix.z * cur_depth);
+            pix_medium.x = pix_medium.x + T * exp_bs.x * medium_rgb_pix.x;
+            pix_medium.y = pix_medium.y + T * exp_bs.y * medium_rgb_pix.y;
+            pix_medium.z = pix_medium.z + T * exp_bs.z * medium_rgb_pix.z;
+
+			prev_depth = cur_depth;
 			T = test_T;
 
 			// Keep track of last range entry to update this
@@ -398,15 +503,27 @@ renderCUDA(
 	{
 		final_T[pix_id] = T;
 		n_contrib[pix_id] = last_contributor;
-		for (int ch = 0; ch < CHANNELS; ch++) {
-			out_color[ch * H * W + pix_id] = C[ch] + T * medium_rgb[CHANNELS * pix_id + ch];
-		}
-		// 增加背景
-		for (int ch = 0; ch < CHANNELS; ch++) {
-			out_color[ch * H * W + pix_id] = C[ch] + T * bg_color[ch];
-		}
+
+		float3 final_medium;
+        // add medium scattering
+        float3 exp_bs;
+        // const float depth = 10.f;
+        exp_bs.x = __expf(-medium_bs_pix.x * prev_depth);
+        exp_bs.y = __expf(-medium_bs_pix.y * prev_depth);
+        exp_bs.z = __expf(-medium_bs_pix.z * prev_depth);
+
+        final_medium.x = pix_medium.x + T * exp_bs.x * medium_rgb_pix.x;
+        final_medium.y = pix_medium.y + T * exp_bs.y * medium_rgb_pix.y;
+        final_medium.z = pix_medium.z + T * exp_bs.z * medium_rgb_pix.z;
+
 		if (invdepth)
-		invdepth[pix_id] = expected_invdepth;// 1. / (expected_depth + T * 1e3);
+			invdepth[pix_id] = expected_invdepth;// 1. / (expected_depth + T * 1e3);
+
+		
+		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = pix_out.z;
+		out_clr[pix_id] = pix_clr.x; out_clr[1*H*W + pix_id] = pix_clr.y; out_clr[2*H*W + pix_id] = pix_clr.z;
+		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
+		depth_im[pix_id] = expected_depth;
 	}
 }
 
@@ -421,13 +538,16 @@ void FORWARD::render(
 	float* final_T,
 	uint32_t* n_contrib,
 	const float* bg_color,
-	float* out_color,
 	float* depths,
 	float* depth,
-	float* medium_rgb,
-	float* medium_bs,
-	float* medium_attn,
-	float* colors_enhance)
+	const float3* medium_rgb,
+	const float3* medium_bs,
+	const float3* medium_attn,
+	const float3* colors_enhance,
+	float* out_img,
+    float* out_clr,
+    float* out_med,
+    float* depth_img )
 {
 	renderCUDA<NUM_CHANNELS> << <grid, block >> > (
 		ranges,
@@ -439,12 +559,16 @@ void FORWARD::render(
 		final_T,
 		n_contrib,
 		bg_color,
-		out_color,
 		depths, 
 		depth,
 		medium_rgb,
 		medium_bs,
-		medium_attn);
+		medium_attn,
+		colors_enhance,
+		out_img,
+		out_clr,
+		out_med,
+		depth_img);
 }
 
 void FORWARD::preprocess(int P, int D, int M,

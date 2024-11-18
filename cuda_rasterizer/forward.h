@@ -60,12 +60,16 @@ namespace FORWARD
 		float* final_T,
 		uint32_t* n_contrib,
 		const float* bg_color,
-		float* out_color,
 		float* depths,
 		float* depth,
-		float* medium_rgb,
-		float* medium_bs,
-		float* medium_attn);
+		const float3* medium_rgb,
+		const float3* medium_bs,
+		const float3* medium_attn,
+		const float3* colors_enhance,
+		float* out_img,
+		float* out_clr,
+		float* out_med,
+		float* depth_img);
 }
 
 
