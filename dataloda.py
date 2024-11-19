@@ -9,12 +9,14 @@ import sys
 from random import randint
 import math
 from diff_gaussian_rasterization_underwater import GaussianRasterizationSettings, GaussianRasterizer
+from diff_gaussian_rasterization import GaussianRasterizationSettings as GaussianRasterizationSettings2
+from diff_gaussian_rasterization import GaussianRasterizer as GaussianRasterizer2
 from utils.sh_utils import eval_sh
 import matplotlib.pyplot as plt
 
 
 def render(viewpoint_camera, pc: GaussianModel, pipe, bg_color: torch.Tensor, model, medium_mlp, embed_fn, embeddirs_fn,
-           scaling_modifier=1.0, override_color=None, c_med=None, sigma_bs=None, sigma_atten=None):
+           scaling_modifier=1.0, override_color=None, c_med=None, sigma_bs=None, sigma_atten=None,colors_enhance = None):
     """
     Render the scene.
 
@@ -33,35 +35,32 @@ def render(viewpoint_camera, pc: GaussianModel, pipe, bg_color: torch.Tensor, mo
     tanfovy = math.tan(viewpoint_camera.FoVy * 0.5)
 
     raster_underwater_settings = GaussianRasterizationSettings(
-        image_height=int(viewpoint_camera.image_height),
-        image_width=int(viewpoint_camera.image_width),
-        tanfovx=tanfovx,
-        tanfovy=tanfovy,
-        bg=bg_color,
-        scale_modifier=scaling_modifier,
+        image_height=int(viewpoint_camera.image_height), # 输出图像高度
+        image_width=int(viewpoint_camera.image_width),  # 输出图像宽度
+        tanfovx=tanfovx,  # 水平视场角的正切
+        tanfovy=tanfovy,  # 垂直视场角的正切
+        bg=bg_color,  # 背景颜色
+        scale_modifier=scaling_modifier,  # 缩放因子
         viewmatrix=viewpoint_camera.world_view_transform,
         projmatrix=viewpoint_camera.full_proj_transform,
         sh_degree=pc.active_sh_degree,
         campos=viewpoint_camera.camera_center,
         prefiltered=False,
         debug=pipe.debug,
-        medium_rgb=c_med,
-        medium_bs=sigma_bs,
-        medium_attn=sigma_atten,
-        antialiasing = None
-
+        antialiasing=False,  # 抗锯齿设置
     )
 
     rasterizer = GaussianRasterizer(raster_settings=raster_underwater_settings)  # 创建一个高斯光栅化器对象，用于将高斯分布投影到屏幕上。
     means3D = pc.get_xyz  # 获取高斯分布的三维坐标、屏幕空间坐标和不透明度。
-
-    means3D = torch.float32([[100,100,100],[100,100,100],[100,100,100]])
+    # means3D = torch.float32([[100,100,100],[100,100,100],[100,100,100]])
     means2D = screenspace_points
     opacity = pc.get_opacity
 
+    # colors_enhance = torch.full((H, W, 3), 2, dtype=torch.float32, device="cuda")
+
     # 如果提供了预先计算的3D协方差矩阵，则使用它。否则，它将由光栅化器根据尺度和旋转进行计算。
-    scales = None
-    rotations = None
+    # scales = None
+    # rotations = None
     cov3D_precomp = None
     shs = None
 
@@ -87,29 +86,31 @@ def render(viewpoint_camera, pc: GaussianModel, pipe, bg_color: torch.Tensor, mo
     else:
         colors_precomp = override_color
 
-
-    rendered_image, radii, _ = rasterizer(
+    color_attn, color_clr, color_medium, radii, depths = rasterizer(
         means3D=means3D,
         means2D=means2D,
         shs=shs,
-        colors_precomp=colors_precomp,
+        colors_precomp=None,
         opacities=opacity,
         scales=scales,
         rotations=rotations,
         cov3D_precomp=cov3D_precomp,
         medium_rgb=c_med,
         medium_bs=sigma_bs,
-        medium_attn=sigma_atten
+        medium_attn=sigma_atten,
+        colors_enhance = colors_enhance # 增强的颜色
     )
 
-
-
+    rendered_image = color_attn + color_medium
     # 返回一个字典，包含渲染的图像、增强的图像，屏幕空间坐标、可见性过滤器（根据半径判断是否可见）、及每个高斯分布在屏幕上的半径、增强的损失。
     return {"render": rendered_image,  # 渲染的图像
             "viewspace_points": screenspace_points,  # 屏幕空间坐标
             "visibility_filter": radii > 0,  # 可见性过滤器（根据半径判断是否可见)
             "radii": radii,  # 及每个高斯分布在屏幕上的半径
-            "medium_rgb": _  # 还要改
+            "medium_rgb": color_medium, # 还要改
+            "color_clr": color_clr,  # 还要改
+            "depths": depths,  #
+
             }
 
 
@@ -140,6 +141,39 @@ def training(dataset, pipe=None, opt=None):
     ...
 
 
+    '''-----------------------原始光栅器---------------------------'''
+    # raster_settings = GaussianRasterizationSettings2(
+    #     image_height=H,                       # 输出图像高度
+    #     image_width=W,                        # 输出图像宽度
+    #     tanfovx=tanfovx,                      # 水平视场角的正切
+    #     tanfovy=tanfovy,                      # 垂直视场角的正切
+    #     bg=bg,                                  # 背景颜色
+    #     scale_modifier=1.0,                     # 缩放因子
+    #     viewmatrix=viewmatrix,                  # 视图矩阵
+    #     projmatrix=projmatrix,                  # 投影矩阵
+    #     sh_degree=1,                            # 球谐次数
+    #     campos=cam_pos,                         # 相机位置
+    #     prefiltered=False,                      # 是否使用预滤波
+    #     debug=False,                             # 是否启用调试模式
+    #     # antialiasing=False,                     # 抗锯齿设置
+    # )
+    #
+    # # 初始化高斯光栅化器
+    # rasterizer = GaussianRasterizer2(raster_settings=raster_settings)
+    #
+    # colors_precomp =None
+    # # 执行高斯光栅化
+    # rendered_image, radii, depth_image = rasterizer(
+    #     means3D=pts,
+    #     means2D=screenspace_points,
+    #     shs=shs,
+    #     colors_precomp=colors_precomp,
+    #     opacities=opacities,
+    #     scales=scales,
+    #     rotations=rotations,
+    #     cov3D_precomp=None)
+
+    '''----------------------------------------------------------'''
 
 
 
