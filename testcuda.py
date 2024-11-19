@@ -1,5 +1,8 @@
 # 导入必要的库
 from diff_gaussian_rasterization_underwater import GaussianRasterizationSettings, GaussianRasterizer
+from diff_gaussian_rasterization import GaussianRasterizationSettings as GaussianRasterizationSettings2
+from diff_gaussian_rasterization import GaussianRasterizer as GaussianRasterizer2
+
 import torch
 import math
 import numpy as np
@@ -182,10 +185,12 @@ sigma_atten = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
 
 # 定义增强颜色参数，形状应该是 H, W, 3
 colors_enhance = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
+# colors_enhance = None
+# colors_enhance = torch.ones((H, W, 3), dtype=torch.float32, device="cuda")
 
 
 # 定义背景颜色为黑色
-bg = torch.tensor([0, 0, 0], dtype=torch.float32, device="cuda")
+bg = torch.tensor([1, 0, 0], dtype=torch.float32, device="cuda")
 
 # 计算屏幕空间坐标
 n_pts = pts.shape[0]
@@ -203,7 +208,7 @@ raster_settings = GaussianRasterizationSettings(
     scale_modifier=1.0,                     # 缩放因子
     viewmatrix=viewmatrix,                  # 视图矩阵
     projmatrix=projmatrix,                  # 投影矩阵
-    sh_degree=1,                            # 球谐次数
+    sh_degree=0,                            # 球谐次数
     campos=cam_pos,                         # 相机位置
     prefiltered=False,                      # 是否使用预滤波
     debug=False,                             # 是否启用调试模式
@@ -213,8 +218,9 @@ raster_settings = GaussianRasterizationSettings(
 # 初始化高斯光栅化器
 rasterizer = GaussianRasterizer(raster_settings=raster_settings)
 
+
 # 执行高斯光栅化
-rendered_image, radii, _ = rasterizer(
+rendered_image,color_clr, color_cem, radii, invdepths = rasterizer(
     means3D=pts,               # 高斯体的3D位置
     means2D=screenspace_points,  # 高斯体在屏幕空间的2D位置
     shs=shs,                   # 球谐颜色
@@ -230,8 +236,46 @@ rendered_image, radii, _ = rasterizer(
 )
 
 
+
+'''--------------------------------------------------------------'''
+raster_settings = GaussianRasterizationSettings2(
+    image_height=H,                       # 输出图像高度
+    image_width=W,                        # 输出图像宽度
+    tanfovx=tanfovx,                      # 水平视场角的正切
+    tanfovy=tanfovy,                      # 垂直视场角的正切
+    bg=bg,                                  # 背景颜色
+    scale_modifier=1.0,                     # 缩放因子
+    viewmatrix=viewmatrix,                  # 视图矩阵
+    projmatrix=projmatrix,                  # 投影矩阵
+    sh_degree=1,                            # 球谐次数
+    campos=cam_pos,                         # 相机位置
+    prefiltered=False,                      # 是否使用预滤波
+    debug=False,                             # 是否启用调试模式
+    # antialiasing=False,                     # 抗锯齿设置
+)
+
+# 初始化高斯光栅化器
+rasterizer = GaussianRasterizer2(raster_settings=raster_settings)
+
+colors_precomp =None
+# 执行高斯光栅化
+rendered_image, radii, depth_image = rasterizer(
+    means3D=pts,
+    means2D=screenspace_points,
+    shs=shs,
+    colors_precomp=colors_precomp,
+    opacities=opacities,
+    scales=scales,
+    rotations=rotations,
+    cov3D_precomp=None)
+
+'''----------------------------------------------------------'''
+
+
+
 rendered_image = rendered_image.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
 
+# rendered_image = color_cem.permute(1, 2, 0)
 # 将渲染图像从GPU移动到CPU，并分离梯度，转换为NumPy数组
 rendered_image_np = rendered_image.detach().cpu().numpy()
 
