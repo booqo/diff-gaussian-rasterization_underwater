@@ -397,13 +397,9 @@ renderCUDA(
 			collected_x[block.thread_rank()] = points_xy_image[coll_id].x;
 			collected_y[block.thread_rank()] = points_xy_image[coll_id].y;
 
-// 			collected_color_x[block.thread_rank()] = features[coll_id * CHANNELS + 0];
-// 			collected_color_y[block.thread_rank()] = features[coll_id * CHANNELS + 1];
-// 			collected_color_z[block.thread_rank()] = features[coll_id * CHANNELS + 2];
-
-			collected_color_x[block.thread_rank()] = 0.5;
-			collected_color_y[block.thread_rank()] = 0.5;
-			collected_color_z[block.thread_rank()] = 0.5;
+			collected_color_x[block.thread_rank()] = features[coll_id * CHANNELS + 0];
+			collected_color_y[block.thread_rank()] = features[coll_id * CHANNELS + 1];
+			collected_color_z[block.thread_rank()] = features[coll_id * CHANNELS + 2];
 
 			collected_conic_opacity_x[block.thread_rank()] = conic_opacity[coll_id].x;
 			collected_conic_opacity_y[block.thread_rank()] = conic_opacity[coll_id].y;
@@ -527,15 +523,10 @@ renderCUDA(
 			invdepth[pix_id] = expected_invdepth;// 1. / (expected_depth + T * 1e3);
 
 		
-// 		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = pix_out.z;
-// 		out_clr[pix_id] = pix_clr.x; out_clr[1*H*W + pix_id] = pix_clr.y; out_clr[2*H*W + pix_id] = pix_clr.z;
-// 		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
-// 		depth_im[pix_id] = expected_depth;//输出在这
-
-		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = 0.5;
-		printf("dddddd");
-
-
+		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = pix_out.z;
+		out_clr[pix_id] = pix_clr.x; out_clr[1*H*W + pix_id] = pix_clr.y; out_clr[2*H*W + pix_id] = pix_clr.z;
+		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
+		depth_im[pix_id] = expected_depth;//输出在这
 
 	}
 }
