@@ -13,6 +13,7 @@
 #include "auxiliary.h"
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
+#include <stdio.h>
 namespace cg = cooperative_groups;
 
 // Forward method for converting the input spherical harmonics
@@ -148,6 +149,7 @@ __device__ void computeCov3D(const glm::vec3 scale, float mod, const glm::vec4 r
 }
 
 // Perform initial steps for each Gaussian prior to rasterization.
+// 预处理
 template<int C>
 __global__ void preprocessCUDA(int P, int D, int M,
 	const float* orig_points,
@@ -295,6 +297,7 @@ renderCUDA(
     float* __restrict__ depth_im
 	)
 {
+
 	// Identify current tile and associated min/max pixel range.
 	auto block = cg::this_thread_block();
 	uint32_t horizontal_blocks = (W + BLOCK_X - 1) / BLOCK_X;
@@ -317,14 +320,14 @@ renderCUDA(
 	// Allocate storage for batches of collectively fetched data.
 
 
-	__shared__ int collected_id[BLOCK_SIZE];
-
-	__shared__ float2 collected_xy[BLOCK_SIZE];
-
-	__shared__ float3 collected_color[BLOCK_SIZE];  //sh color  O
-
-	__shared__ float4 collected_conic_opacity[BLOCK_SIZE];
-	__shared__ float collected_depth[BLOCK_SIZE];
+// 	__shared__ int collected_id[BLOCK_SIZE];
+//
+// 	__shared__ float2 collected_xy[BLOCK_SIZE];
+//
+// 	__shared__ float3 collected_color[BLOCK_SIZE];  //sh color  O
+//
+// 	__shared__ float4 collected_conic_opacity[BLOCK_SIZE];
+// 	__shared__ float collected_depth[BLOCK_SIZE];
 
 
 
@@ -394,9 +397,13 @@ renderCUDA(
 			collected_x[block.thread_rank()] = points_xy_image[coll_id].x;
 			collected_y[block.thread_rank()] = points_xy_image[coll_id].y;
 
-			collected_color_x[block.thread_rank()] = features[coll_id * CHANNELS + 0];
-			collected_color_y[block.thread_rank()] = features[coll_id * CHANNELS + 1];
-			collected_color_z[block.thread_rank()] = features[coll_id * CHANNELS + 2];
+// 			collected_color_x[block.thread_rank()] = features[coll_id * CHANNELS + 0];
+// 			collected_color_y[block.thread_rank()] = features[coll_id * CHANNELS + 1];
+// 			collected_color_z[block.thread_rank()] = features[coll_id * CHANNELS + 2];
+
+			collected_color_x[block.thread_rank()] = 0.5;
+			collected_color_y[block.thread_rank()] = 0.5;
+			collected_color_z[block.thread_rank()] = 0.5;
 
 			collected_conic_opacity_x[block.thread_rank()] = conic_opacity[coll_id].x;
 			collected_conic_opacity_y[block.thread_rank()] = conic_opacity[coll_id].y;
@@ -520,10 +527,16 @@ renderCUDA(
 			invdepth[pix_id] = expected_invdepth;// 1. / (expected_depth + T * 1e3);
 
 		
-		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = pix_out.z;
-		out_clr[pix_id] = pix_clr.x; out_clr[1*H*W + pix_id] = pix_clr.y; out_clr[2*H*W + pix_id] = pix_clr.z;
-		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
-		depth_im[pix_id] = expected_depth;
+// 		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = pix_out.z;
+// 		out_clr[pix_id] = pix_clr.x; out_clr[1*H*W + pix_id] = pix_clr.y; out_clr[2*H*W + pix_id] = pix_clr.z;
+// 		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
+// 		depth_im[pix_id] = expected_depth;//输出在这
+
+		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = 0.5;
+		printf("dddddd");
+
+
+
 	}
 }
 
