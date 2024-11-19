@@ -138,7 +138,7 @@ RasterizeGaussiansCUDA_underwater(
 		radii.contiguous().data_ptr<int>(),
 		debug);
   }
-  printf("ffff");
+//   printf("test");
   return std::make_tuple(rendered, out_image , out_color, out_med, radii, geomBuffer, binningBuffer, imgBuffer, out_invdepth);
 }
 
