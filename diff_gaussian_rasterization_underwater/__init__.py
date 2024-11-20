@@ -240,8 +240,8 @@ class GaussianRasterizer(nn.Module):
             medium_attn = torch.zeros_like(medium_rgb).to(means3D.device)
 
         if colors_enhance is None:
-            colors_enhance = torch.zeros_like(medium_rgb).to(means3D.device)
-            print("Without colors enhance")
+            colors_enhance = torch.ones_like(medium_rgb).to(means3D.device)
+            print("Without colors enhance, initial with tensor 1")
 
         return rasterize_gaussians_underwater(
             means3D,
