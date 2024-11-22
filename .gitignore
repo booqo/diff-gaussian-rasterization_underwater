@@ -5,4 +5,4 @@ cmake-build-debug/
 __pycache__/
 *.egg-info/
 *.pyc
-
+.idea/

@@ -32,13 +32,26 @@ namespace BACKWARD
 		const float* depths,
 		const float* final_Ts,
 		const uint32_t* n_contrib,
-		const float* dL_dpixels,
-		const float* dL_invdepths,
+		const float3* medium_rgb, //介质颜色
+		const float3* medium_bs, //介质 \sigma bs
+		const float3* medium_attn,
+		const float3* colors_enhance,
+		const float* dL_dout_color_image,
+		const float* dL_dout_color_clr,
+		const float* dL_dout_color_cmed,
+		//const float* dL_invdepths,
+		const float* dL_dout_depthptr,
 		float3* dL_dmean2D,
 		float4* dL_dconic2D,
 		float* dL_dopacity,
+		float* dL_dmedium_rgb,
+		float* dL_dmedium_bs, 
+		float* dL_dmedium_attn, 
 		float* dL_dcolors,
-		float* dL_dinvdepths);
+		float* dL_dcolors_enhance,
+		float* dL_ddepthptr
+		//float* dL_dinvdepths
+		);
 
 	void preprocess(
 		int P, int D, int M,
@@ -58,7 +71,8 @@ namespace BACKWARD
 		const glm::vec3* campos,
 		const float3* dL_dmean2D,
 		const float* dL_dconics,
-		const float* dL_dinvdepth,
+		//const float* dL_dinvdepth,
+		const float* dL_ddepthptr,
 		float* dL_dopacity,
 		glm::vec3* dL_dmeans,
 		float* dL_dcolor,
