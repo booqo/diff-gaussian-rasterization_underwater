@@ -117,9 +117,9 @@ n = len(pts)  # 高斯体数量
 
 # 设置固定颜色（进一步调整以避免超出范围）
 desired_colors = np.array([
-    [0.4, 0.0, 0.0],   # 高斯体 1: 红色
-    [0.0, 0.4, 0.0],   # 高斯体 2: 绿色
-    [0.0, 0.0, 0.4]    # 高斯体 3: 蓝色
+    [100, 0.0, 0.0],   # 高斯体 1: 红色
+    [0.0, 100, 0.0],   # 高斯体 2: 绿色
+    [0.0, 0.0, 0.00]    # 高斯体 3: 蓝色
 ], dtype=np.float32)
 
 # 初始化球谐函数系数为全零，并设置零阶系数为所需颜色(固定颜色)
@@ -179,18 +179,21 @@ projmatrix = torch.matmul(projmatrix, viewmatrix)
 cam_pos = torch.tensor(cam_pos, dtype=torch.float32, device="cuda")
 
 # 定义介质参数，形状应该是 H, W, 3
-c_med = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
-sigma_bs = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
-sigma_atten = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
+c_med = torch.zeros((H, W, 3), dtype=torch.float32, device="cuda")
+c_med[:, :, 0] = 0  # 红色通道
+c_med[:, :, 1] = 0  # 绿色通道
+c_med[:, :, 2] = 130  # 蓝色通道
+sigma_bs = torch.full((H, W, 3), 0.1, dtype=torch.float32, device="cuda")
+sigma_atten = torch.full((H, W, 3), 0.1, dtype=torch.float32, device="cuda")
 
 # 定义增强颜色参数，形状应该是 H, W, 3
-colors_enhance = torch.full((H, W, 3), 0.5, dtype=torch.float32, device="cuda")
+colors_enhance = torch.full((H, W, 3), 2, dtype=torch.float32, device="cuda")
 # colors_enhance = None
 # colors_enhance = torch.ones((H, W, 3), dtype=torch.float32, device="cuda")
 
 
 # 定义背景颜色为黑色
-bg = torch.tensor([1, 0, 0], dtype=torch.float32, device="cuda")
+bg = torch.tensor([0, 0, 0], dtype=torch.float32, device="cuda")
 
 # 计算屏幕空间坐标
 n_pts = pts.shape[0]
@@ -220,7 +223,7 @@ rasterizer = GaussianRasterizer(raster_settings=raster_settings)
 
 
 # 执行高斯光栅化
-rendered_image,color_clr, color_cem, radii, invdepths = rasterizer(
+color_attn , color_clr, color_medium, radii, depths = rasterizer(
     means3D=pts,               # 高斯体的3D位置
     means2D=screenspace_points,  # 高斯体在屏幕空间的2D位置
     shs=shs,                   # 球谐颜色
@@ -238,50 +241,80 @@ rendered_image,color_clr, color_cem, radii, invdepths = rasterizer(
 
 
 '''--------------------------------------------------------------'''
-raster_settings = GaussianRasterizationSettings2(
-    image_height=H,                       # 输出图像高度
-    image_width=W,                        # 输出图像宽度
-    tanfovx=tanfovx,                      # 水平视场角的正切
-    tanfovy=tanfovy,                      # 垂直视场角的正切
-    bg=bg,                                  # 背景颜色
-    scale_modifier=1.0,                     # 缩放因子
-    viewmatrix=viewmatrix,                  # 视图矩阵
-    projmatrix=projmatrix,                  # 投影矩阵
-    sh_degree=1,                            # 球谐次数
-    campos=cam_pos,                         # 相机位置
-    prefiltered=False,                      # 是否使用预滤波
-    debug=False,                             # 是否启用调试模式
-    # antialiasing=False,                     # 抗锯齿设置
-)
-
-# 初始化高斯光栅化器
-rasterizer = GaussianRasterizer2(raster_settings=raster_settings)
-
-colors_precomp =None
-# 执行高斯光栅化
-rendered_image, radii, depth_image = rasterizer(
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=colors_precomp,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None)
+# raster_settings = GaussianRasterizationSettings2(
+#     image_height=H,                       # 输出图像高度
+#     image_width=W,                        # 输出图像宽度
+#     tanfovx=tanfovx,                      # 水平视场角的正切
+#     tanfovy=tanfovy,                      # 垂直视场角的正切
+#     bg=bg,                                  # 背景颜色
+#     scale_modifier=1.0,                     # 缩放因子
+#     viewmatrix=viewmatrix,                  # 视图矩阵
+#     projmatrix=projmatrix,                  # 投影矩阵
+#     sh_degree=1,                            # 球谐次数
+#     campos=cam_pos,                         # 相机位置
+#     prefiltered=False,                      # 是否使用预滤波
+#     debug=False,                             # 是否启用调试模式
+#     # antialiasing=False,                     # 抗锯齿设置
+# )
+#
+# # 初始化高斯光栅化器
+# rasterizer = GaussianRasterizer2(raster_settings=raster_settings)
+#
+# colors_precomp =None
+# # 执行高斯光栅化
+# rendered_image, radii, depth_image = rasterizer(
+#     means3D=pts,
+#     means2D=screenspace_points,
+#     shs=shs,
+#     colors_precomp=colors_precomp,
+#     opacities=opacities,
+#     scales=scales,
+#     rotations=rotations,
+#     cov3D_precomp=None)
 
 '''----------------------------------------------------------'''
 
 
 
-rendered_image = rendered_image.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
+color_attn = color_attn.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
+color_clr = color_clr.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
+color_medium = color_medium.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
+depths = depths.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
 
-# rendered_image = color_cem.permute(1, 2, 0)
+# rendered_image = color_medium.permute(1, 2, 0)
 # 将渲染图像从GPU移动到CPU，并分离梯度，转换为NumPy数组
-rendered_image_np = rendered_image.detach().cpu().numpy()
+color_attn_np = color_attn.detach().cpu().numpy()
+color_clr_np = color_clr.detach().cpu().numpy()
+color_medium_np = color_medium.detach().cpu().numpy()
+depths_np = depths.detach().cpu().numpy()
+rendered_image_np = color_attn_np + color_medium_np
+
+
 
 # 使用Matplotlib显示渲染结果
-plt.imshow(rendered_image_np)
-plt.axis('off')  # 可选，去掉坐标轴
+fig, axes = plt.subplots(1, 5, figsize=(15, 5))  # 创建 1 行 3 列的子图
+axes[0].imshow(rendered_image_np)
+axes[0].axis('off')  # 关闭第一张图的坐标轴
+axes[0].set_title("Rendered Image")
+
+axes[1].imshow(color_clr_np)
+axes[1].axis('off')
+axes[1].set_title("Color Clr")
+
+axes[2].imshow(color_medium_np)
+axes[2].axis('off')
+axes[2].set_title("Color Medium")
+
+axes[3].imshow(color_attn_np)
+axes[3].axis('off')
+axes[3].set_title("Color Attn")
+
+axes[4].imshow(depths_np)
+axes[4].axis('off')
+axes[4].set_title("Depth Map")
+
+# fig.suptitle('Visual Representation of Different Image Components', fontsize=16)
+
 plt.show()
 
 

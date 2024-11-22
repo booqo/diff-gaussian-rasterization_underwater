@@ -103,12 +103,6 @@ class _RasterizeGaussians(torch.autograd.Function):
         # Invoke C++/CUDA rasterizer
         num_rendered, color_image , color_clr, color_cem , radii, geomBuffer, binningBuffer, imgBuffer, depths = _C.rasterize_gaussians_underwater(*args)
 
-        # print("After unpacking:")#debug
-        # print("num_rendered:", num_rendered)#debug
-        # result = _C.rasterize_gaussians_underwater(*args) #debug
-        # print("Result length:", len(result))    #debug
-        # # print("Result content:", result)    #debug
-
         # Keep relevant tensors for backward 保存上下文以便反向传播
         ctx.raster_settings = raster_settings
         ctx.num_rendered = num_rendered
@@ -253,6 +247,10 @@ class GaussianRasterizer(nn.Module):
             medium_bs = torch.zeros_like(medium_rgb).to(means3D.device)
         if medium_attn is None:
             medium_attn = torch.zeros_like(medium_rgb).to(means3D.device)
+
+        if colors_enhance is None:
+            colors_enhance = torch.zeros_like(medium_rgb).to(means3D.device)
+            print("Without colors enhance")
 
         return rasterize_gaussians_underwater(
             means3D,
