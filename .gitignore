@@ -3,3 +3,5 @@ diff_gaussian_rasterization.egg-info/
 dist/
 cmake-build-debug/
 __pycache__/
+*.egg-info/
+*.pyc
