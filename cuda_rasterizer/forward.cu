@@ -286,7 +286,7 @@ renderCUDA(
 	uint32_t* __restrict__ n_contrib,
 	const float* __restrict__ bg_color,
 	const float* __restrict__ depths,
-	float* __restrict__ invdepth,
+	//float* __restrict__ invdepth,
 	const float3* __restrict__ medium_rgb, //介质颜色
 	const float3* __restrict__ medium_bs, //介质 \sigma bs
 	const float3* __restrict__ medium_attn,
@@ -357,7 +357,7 @@ renderCUDA(
     float3 pix_clr = {0.f, 0.f, 0.f};
     float3 pix_medium = {0.f, 0.f, 0.f};
 	float expected_depth = 0.0f;
-	float expected_invdepth = 0.0f;
+	//float expected_invdepth = 0.0f;
 
 
 	float prev_depth = 0.f;
@@ -366,7 +366,7 @@ renderCUDA(
     float3 medium_bs_pix;
     float3 medium_attn_pix;
 	float3 colors_enhance_pix;
-    float max_medium_attn_pix;
+    //float max_medium_attn_pix;
 
 	if (inside) {
         medium_rgb_pix = medium_rgb[pix_id];
@@ -375,7 +375,7 @@ renderCUDA(
 		colors_enhance_pix = colors_enhance[pix_id];   //phi
         prev_depth = 0.f;
         // get the biggest one of medium_attn_pix xyz
-        max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
+        //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
     }
 
 
@@ -397,13 +397,13 @@ renderCUDA(
 			collected_x[block.thread_rank()] = points_xy_image[coll_id].x;
 			collected_y[block.thread_rank()] = points_xy_image[coll_id].y;
 
-// 			collected_color_x[block.thread_rank()] = features[coll_id * CHANNELS + 0];
-// 			collected_color_y[block.thread_rank()] = features[coll_id * CHANNELS + 1];
-// 			collected_color_z[block.thread_rank()] = features[coll_id * CHANNELS + 2];
+			collected_color_x[block.thread_rank()] = features[coll_id * CHANNELS + 0];
+			collected_color_y[block.thread_rank()] = features[coll_id * CHANNELS + 1];
+			collected_color_z[block.thread_rank()] = features[coll_id * CHANNELS + 2];
 
-			collected_color_x[block.thread_rank()] = 0.5;
-			collected_color_y[block.thread_rank()] = 0.5;
-			collected_color_z[block.thread_rank()] = 0.5;
+			// collected_color_x[block.thread_rank()] = 0.5;
+			// collected_color_y[block.thread_rank()] = 0.5;
+			// collected_color_z[block.thread_rank()] = 0.5;
 
 			collected_conic_opacity_x[block.thread_rank()] = conic_opacity[coll_id].x;
 			collected_conic_opacity_y[block.thread_rank()] = conic_opacity[coll_id].y;
@@ -442,7 +442,7 @@ renderCUDA(
 			// and its exponential falloff from mean.
 			// Avoid numerical instabilities (see paper appendix). 
 			float alpha = min(0.99f, con_w * exp(power));
-			if (alpha * exp(-max_medium_attn_pix * cur_depth) < 1.0f / 255.0f)
+			if (alpha < 1.0f / 255.0f)
 				continue;
 
 
@@ -484,8 +484,8 @@ renderCUDA(
 
 			expected_depth = expected_depth + vis * cur_depth;
 
-			if(invdepth)
-				expected_invdepth += (1 / depths[collected_id[j]]) * alpha * T;
+			// if(invdepth)
+			// 	expected_invdepth += (1 / depths[collected_id[j]]) * alpha * T;
 
 			float3 exp_bs;
             exp_bs.x = exp(-medium_bs_pix.x * prev_depth) - exp(-medium_bs_pix.x * cur_depth);
@@ -523,17 +523,17 @@ renderCUDA(
         final_medium.y = pix_medium.y + T * exp_bs.y * medium_rgb_pix.y;
         final_medium.z = pix_medium.z + T * exp_bs.z * medium_rgb_pix.z;
 
-		if (invdepth)
-			invdepth[pix_id] = expected_invdepth;// 1. / (expected_depth + T * 1e3);
+		// if (invdepth)
+		// 	invdepth[pix_id] = expected_invdepth;// 1. / (expected_depth + T * 1e3);
 
 		
-// 		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = pix_out.z;
-// 		out_clr[pix_id] = pix_clr.x; out_clr[1*H*W + pix_id] = pix_clr.y; out_clr[2*H*W + pix_id] = pix_clr.z;
-// 		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
-// 		depth_im[pix_id] = expected_depth;//输出在这
+		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = pix_out.z;
+		out_clr[pix_id] = pix_clr.x; out_clr[1*H*W + pix_id] = pix_clr.y; out_clr[2*H*W + pix_id] = pix_clr.z;
+		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
+		depth_im[pix_id] = expected_depth;//输出在这
 
-		out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = 0.5;
-		printf("dddddd");
+		//out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = 0.5;
+		//printf("dddddd");
 
 
 
@@ -552,7 +552,7 @@ void FORWARD::render(
 	uint32_t* n_contrib,
 	const float* bg_color,
 	float* depths,
-	float* depth,
+	//float* depth,
 	const float3* medium_rgb,
 	const float3* medium_bs,
 	const float3* medium_attn,
@@ -573,7 +573,7 @@ void FORWARD::render(
 		n_contrib,
 		bg_color,
 		depths, 
-		depth,
+		//depth,
 		medium_rgb,
 		medium_bs,
 		medium_attn,

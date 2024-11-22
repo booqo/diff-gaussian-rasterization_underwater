@@ -223,7 +223,7 @@ int CudaRasterizer::Rasterizer::forward(
 	const float* cam_pos,
 	const float tan_fovx, float tan_fovy,
 	const bool prefiltered,
-	float* depth,
+	//float* inv_depth,
 	bool antialiasing,
 	int* radii,
 	bool debug)
@@ -328,7 +328,7 @@ int CudaRasterizer::Rasterizer::forward(
 	CHECK_CUDA(, debug)
 
 	// Let each tile blend its range of Gaussians independently in parallel
-	const float* feature_ptr = colors_precomp != nullptr ? colors_precomp : geomState.rgb;
+	const float* feature_ptr = colors_precomp != nullptr ? colors_precomp : geomState.rgb;   //
 	CHECK_CUDA(FORWARD::render(
 		tile_grid, block,
 		imgState.ranges,
@@ -341,7 +341,7 @@ int CudaRasterizer::Rasterizer::forward(
 		imgState.n_contrib,
 		background,
 		geomState.depths,
-		depth,
+		//inv_depth,
 		medium_rgb, 
 		medium_bs, 
 		medium_attn,
@@ -376,15 +376,26 @@ void CudaRasterizer::Rasterizer::backward(
 	char* geom_buffer,
 	char* binning_buffer,
 	char* img_buffer,
-	const float* dL_dpix,
-	const float* dL_invdepths,
+	const float3* medium_rgb, //介质颜色
+	const float3* medium_bs, //介质 \sigma bs
+	const float3* medium_attn,
+	const float3* colors_enhance,
+	const float* dL_dout_color_image,
+	const float* dL_dout_color_clr,
+	const float* dL_dout_color_cmed,
+	const float* dL_dout_depthptr,
+	//const float* dL_invdepths,
 	float* dL_dmean2D,
 	float* dL_dconic,
 	float* dL_dopacity,
-	float* dL_dcolor,
-	float* dL_dinvdepth,
+	float* dL_ddepthptr,
 	float* dL_dmean3D,
 	float* dL_dcov3D,
+	float* dL_dmedium_rgb,
+	float* dL_dmedium_bs, 
+	float* dL_dmedium_attn, 
+	float* dL_dcolors,
+	float* dL_dcolors_enhance,
 	float* dL_dsh,
 	float* dL_dscale,
 	float* dL_drot,
@@ -423,13 +434,27 @@ void CudaRasterizer::Rasterizer::backward(
 		geomState.depths,
 		imgState.accum_alpha,
 		imgState.n_contrib,
-		dL_dpix,
-		dL_invdepths,
+		medium_rgb, //介质颜色
+		medium_bs, //介质 \sigma bs
+		medium_attn,
+		colors_enhance,
+		dL_dout_color_image,
+		dL_dout_color_clr,
+		dL_dout_color_cmed,
+		//dL_invdepths,
+		dL_dout_depthptr,
 		(float3*)dL_dmean2D,
 		(float4*)dL_dconic,
 		dL_dopacity,
-		dL_dcolor,
-		dL_dinvdepth), debug);
+		dL_dmedium_rgb,
+		dL_dmedium_bs, 
+		dL_dmedium_attn, 
+		dL_dcolors,
+		dL_dcolors_enhance,
+		dL_ddepthptr
+		//dL_dinvdepth
+		), 
+		debug);
 
 	// Take care of the rest of preprocessing. Was the precomputed covariance
 	// given to us or a scales/rot pair? If precomputed, pass that. If not,
@@ -452,10 +477,11 @@ void CudaRasterizer::Rasterizer::backward(
 		(glm::vec3*)campos,
 		(float3*)dL_dmean2D,
 		dL_dconic,
-		dL_dinvdepth,
+		//dL_dinvdepth,
+		dL_ddepthptr,
 		dL_dopacity,
 		(glm::vec3*)dL_dmean3D,
-		dL_dcolor,
+		dL_dcolors_enhance,
 		dL_dcov3D,
 		dL_dsh,
 		(glm::vec3*)dL_dscale,

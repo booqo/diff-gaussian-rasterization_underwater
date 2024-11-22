@@ -15,7 +15,7 @@
 #include <tuple>
 #include <string>
 	
-std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<int, torch::Tensor, torch::Tensor , torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 RasterizeGaussiansCUDA_underwater(
 	const torch::Tensor& background,
 	const torch::Tensor& means3D,
@@ -42,7 +42,8 @@ RasterizeGaussiansCUDA_underwater(
 	const bool antialiasing,
 	const bool debug);
 
-std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor,
+	torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
  RasterizeGaussiansBackwardCUDA_underwater(
  	const torch::Tensor& background,
 	const torch::Tensor& means3D,
@@ -57,8 +58,15 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
     const torch::Tensor& projmatrix,
 	const float tan_fovx, 
 	const float tan_fovy,
-    const torch::Tensor& dL_dout_color,
-	const torch::Tensor& dL_dout_invdepth,
+	const torch::Tensor& medium_rgb, //介质颜色
+	const torch::Tensor& medium_bs, //介质 \sigma bs
+	const torch::Tensor& medium_attn,
+	const torch::Tensor& colors_enhance,
+    const torch::Tensor& dL_dout_color_image, // 3 H W
+	const torch::Tensor& dL_dout_color_clr,  // 3 H W
+	const torch::Tensor& dL_dout_color_cmed,  // 3 H W
+	const torch::Tensor& dL_dout_depth,   //1 H W
+	//const torch::Tensor& dL_dout_invdepth,
 	const torch::Tensor& sh,
 	const int degree,
 	const torch::Tensor& campos,

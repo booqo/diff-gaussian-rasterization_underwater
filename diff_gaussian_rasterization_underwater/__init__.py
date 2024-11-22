@@ -101,7 +101,7 @@ class _RasterizeGaussians(torch.autograd.Function):
         )
 
         # Invoke C++/CUDA rasterizer
-        num_rendered, color_image , color_clr, color_cem , radii, geomBuffer, binningBuffer, imgBuffer, invdepths = _C.rasterize_gaussians_underwater(*args)
+        num_rendered, color_image , color_clr, color_cem , radii, geomBuffer, binningBuffer, imgBuffer, depths = _C.rasterize_gaussians_underwater(*args)
 
         # print("After unpacking:")#debug
         # print("num_rendered:", num_rendered)#debug
@@ -112,16 +112,18 @@ class _RasterizeGaussians(torch.autograd.Function):
         # Keep relevant tensors for backward 保存上下文以便反向传播
         ctx.raster_settings = raster_settings
         ctx.num_rendered = num_rendered
-        ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, opacities, geomBuffer, binningBuffer, imgBuffer)
-        return color_image , color_clr, color_cem , radii, invdepths
+        ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp,  medium_rgb, medium_bs, medium_attn,
+                              colors_enhance , radii, sh, opacities, geomBuffer, binningBuffer, imgBuffer)
+        return color_image , color_clr, color_cem , radii, depths
 
     @staticmethod
-    def backward(ctx, grad_out_color, _, grad_out_depth):
+    def backward(ctx, grad_color_image , grad_color_clr, grad_color_cem , _ , grad_depths):
 
         # Restore necessary values from context
         num_rendered = ctx.num_rendered
         raster_settings = ctx.raster_settings
-        colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, opacities, geomBuffer, binningBuffer, imgBuffer = ctx.saved_tensors
+        colors_precomp, means3D, scales, rotations, cov3Ds_precomp, medium_rgb, medium_bs, medium_attn,  \
+                              colors_enhance, radii, sh, opacities, geomBuffer, binningBuffer, imgBuffer = ctx.saved_tensors
 
         # Restructure args as C++ method expects them 对应c++RasterizeGaussiansBackwardCUDA_underwater 
         args = (raster_settings.bg,
@@ -137,8 +139,14 @@ class _RasterizeGaussians(torch.autograd.Function):
                 raster_settings.projmatrix, 
                 raster_settings.tanfovx, 
                 raster_settings.tanfovy, 
-                grad_out_color,
-                grad_out_depth, 
+                medium_rgb, 
+                medium_bs, 
+                medium_attn,  
+                colors_enhance,
+                grad_color_image,
+                grad_color_clr,
+                grad_color_cem,
+                grad_depths, 
                 sh, 
                 raster_settings.sh_degree, 
                 raster_settings.campos,
@@ -150,7 +158,8 @@ class _RasterizeGaussians(torch.autograd.Function):
                 raster_settings.debug)
 
         # Compute gradients for relevant tensors by invoking backward method
-        grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_sh, grad_scales, grad_rotations = _C.rasterize_gaussians_backward_underwater(*args)
+        grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_medium_rgb, grad_medium_bs,   \
+                grad_medium_attn, grad_colors_enhance, grad_sh, grad_scales, grad_rotations = _C.rasterize_gaussians_backward_underwater(*args)
 
         grads = (
             grad_means3D,
@@ -161,11 +170,11 @@ class _RasterizeGaussians(torch.autograd.Function):
             grad_scales,
             grad_rotations,
             grad_cov3Ds_precomp,
+            grad_medium_rgb,
+            grad_medium_bs,
+            grad_medium_attn,
             None,
-            None,
-            None,
-            None,
-            None
+            grad_colors_enhance,
         )
 
         return grads
