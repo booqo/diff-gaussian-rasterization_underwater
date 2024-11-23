@@ -13,6 +13,7 @@ from diff_gaussian_rasterization import GaussianRasterizationSettings as Gaussia
 from diff_gaussian_rasterization import GaussianRasterizer as GaussianRasterizer2
 from utils.sh_utils import eval_sh
 import matplotlib.pyplot as plt
+from utils.loss_utils import l1_loss, ssim, raw_loss, l2_loss, BackscatterLoss, DeattenuateLoss
 
 
 def render(viewpoint_camera, pc: GaussianModel, pipe, bg_color: torch.Tensor, model, medium_mlp, embed_fn, embeddirs_fn,
@@ -126,6 +127,16 @@ def training(dataset, pipe=None, opt=None):
 
     render_pkg = render(viewpoint_cam, gaussians, pipe, bg, model=None, medium_mlp=None, embed_fn=None, embeddirs_fn=None)
     net_image = render_pkg["render"]
+
+    # 计算原有的损失
+    gt_image = viewpoint_cam.original_image.cuda()  # （3，H，W）
+
+    Ll1 = l1_loss(net_image, gt_image)  # scalar，公式中的 l1，平均绝对误差
+    ssim_value = ssim(net_image, gt_image)
+    loss1 = (1.0 - 0.2) * Ll1 + 0.2 * (1.0 - ssim_value)
+    loss1.backward()
+    print("dd")
+
 
     rendered_image = net_image.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
 
