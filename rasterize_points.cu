@@ -180,7 +180,7 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
   const int P = means3D.size(0);
   const int H = dL_dout_color_image.size(1);
   const int W = dL_dout_color_image.size(2);
-  
+  //printf("P: %d, H: %d, W: %d\n", P, H, W);
   int M = 0;
   if(sh.size(0) != 0)
   {	
@@ -197,7 +197,7 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
   torch::Tensor dL_drotations = torch::zeros({P, 4}, means3D.options());
   torch::Tensor dL_ddepths = torch::zeros({0, 1}, means3D.options());
 
-
+  
   
   torch::Tensor dL_dmedium_rgb = torch::zeros({H, W, 3}, means3D.options());
   torch::Tensor dL_dmedium_bs = torch::zeros({H, W, 3}, means3D.options());
@@ -224,9 +224,10 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	dL_ddepths = torch::zeros({P, 1}, means3D.options());
 	dL_ddepths = dL_ddepths.contiguous();
 	dL_ddepthsptr = dL_ddepths.data_ptr<float>();  // p 1
-	dL_dout_depthptr = dL_dout_depth.data_ptr<float>();  //1 H W
+	dL_dout_depthptr = dL_dout_depth.contiguous().data_ptr<float>();  //1 H W
   }
 
+  //printf("part1\n");
   if(P != 0)
   {  
 	  CudaRasterizer::Rasterizer::backward(P, degree, M, R,

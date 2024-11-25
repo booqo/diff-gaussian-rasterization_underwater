@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch
 from . import _C
 from typing import Optional
+#import pdb
 
 
 def cpu_deep_copy_tuple(input_tuple):
@@ -114,6 +115,7 @@ class _RasterizeGaussians(torch.autograd.Function):
     def backward(ctx, grad_color_image , grad_color_clr, grad_color_cem , _ , grad_depths):
 
         # Restore necessary values from context
+        #pdb.set_trace()
         num_rendered = ctx.num_rendered
         raster_settings = ctx.raster_settings
         colors_precomp, means3D, scales, rotations, cov3Ds_precomp, medium_rgb, medium_bs, medium_attn,  \
@@ -150,11 +152,13 @@ class _RasterizeGaussians(torch.autograd.Function):
                 imgBuffer,
                 raster_settings.antialiasing,
                 raster_settings.debug)
-
+        #pdb.set_trace()
+        #z = 1
         # Compute gradients for relevant tensors by invoking backward method
         grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_medium_rgb, grad_medium_bs,   \
                 grad_medium_attn, grad_colors_enhance, grad_sh, grad_scales, grad_rotations = _C.rasterize_gaussians_backward_underwater(*args)
-
+        # print("grad_means2D shape is ",grad_means2D.shape)
+        # print("grad_medium_attn shape is ",grad_medium_attn.shape)
         grads = (
             grad_means3D,
             grad_means2D,

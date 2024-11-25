@@ -502,6 +502,10 @@ renderCUDA(
 	bool done = !inside;
 	int toDo = range.y - range.x;
 
+	// if(block.thread_rank() == 0)
+	// 	printf("block id x is %d, and block id y is %d , and continue0\n" , block.group_index().x, block.group_index().y);
+
+
 	__shared__ int collected_id[BLOCK_SIZE];
 	__shared__ float2 collected_xy[BLOCK_SIZE];
 	__shared__ float4 collected_conic_opacity[BLOCK_SIZE];
@@ -524,8 +528,8 @@ renderCUDA(
 
 	float accum_rec_med[C] = { 0 };
 
-	float dL_dpixel1[C];  //obj  dL/dC1
-	float dL_dpixel2[C];  //cmed  dL/dC2
+	float dL_dpixel1[C] = {0};  //obj  dL/dC1
+	float dL_dpixel2[C] = {0};  //cmed  dL/dC2
 
 	float dL_dcmed[C] = {0};  //obj  dL/dC1
 	float dL_dsigma_bs[C] = {0};  //cmed  dL/dC2
@@ -551,11 +555,15 @@ renderCUDA(
 		
 	}
 
+	// if(block.thread_rank() == 0)
+	// 	printf("block id x is %d, and block id y is %d , and continue1\n" , block.group_index().x, block.group_index().y);
 
-	float medium_rgb_pix[3]; // cmed
-    float medium_bs_pix[3];  //sigma_bs
-    float medium_attn_pix[3];  //sigma_attn
-	float colors_enhance_pix[3];  //phi
+
+
+	float medium_rgb_pix[3] = {0}; // cmed
+    float medium_bs_pix[3] = {0};  //sigma_bs
+    float medium_attn_pix[3] = {0};  //sigma_attn
+	float colors_enhance_pix[3] = {0};  //phi
     //float max_medium_attn_pix;
 	float prev_depth;
 
@@ -569,10 +577,13 @@ renderCUDA(
         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
     }
 
-	for (int i = 0; i < C; i++)
-	{
-		dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
-	}
+	// for (int i = 0; i < C; i++)
+	// {
+	// 	dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
+	// }
+
+	// if(block.thread_rank() == 0)
+	// 	printf("block id x is %d, and block id y is %d , and continue2\n" , block.group_index().x, block.group_index().y);
 
 	float last_alpha = 0;
 	float last_T = 0;
@@ -588,6 +599,7 @@ renderCUDA(
 
 	bool get_final = false;
 	float T_N1_expbs_cmed[3] = {0};
+	//assert(false);
 
 	// Traverse all Gaussians
 	for (int i = 0; i < rounds; i++, toDo -= BLOCK_SIZE)
@@ -608,8 +620,10 @@ renderCUDA(
 			//if(dL_invdepths)
 			collected_depths[block.thread_rank()] = depths[coll_id];
 		}
+		block.sync();
 		if (range.x + progress < range.y - 1)
 		{
+			//assert(range.y - progress - 2 >= range.x);
 			const int coll_id = point_list[range.y - progress - 2];
 			collected_prev_depths[block.thread_rank()] = depths[coll_id];
 		}
@@ -617,7 +631,15 @@ renderCUDA(
 		{
 			collected_prev_depths[block.thread_rank()] = 0;
 		}
+		// if (range.x + progress < range.y)
+		// {
+		// 	collected_prev_depths[block.thread_rank()] = 0;
+		// }
+		
 		block.sync();
+
+		// if(pix_id == 0)
+		//     printf("continue3\n");
 
 		// Iterate over Gaussians
 		for (int j = 0; !done && j < min(BLOCK_SIZE, toDo); j++)
