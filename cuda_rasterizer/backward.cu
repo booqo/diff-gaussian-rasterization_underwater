@@ -584,6 +584,10 @@ renderCUDA(
 
 	// if(block.thread_rank() == 0)
 	// 	printf("block id x is %d, and block id y is %d , and continue2\n" , block.group_index().x, block.group_index().y);
+	//for (int i = 0; i < C; i++)
+	//{
+	//	dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
+	//}
 
 	float last_alpha = 0;
 	float last_T = 0;
