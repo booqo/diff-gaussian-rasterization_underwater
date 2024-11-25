@@ -569,10 +569,10 @@ renderCUDA(
         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
     }
 
-	for (int i = 0; i < C; i++)
-	{
-		dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
-	}
+	//for (int i = 0; i < C; i++)
+	//{
+	//	dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
+	//}
 
 	float last_alpha = 0;
 	float last_T = 0;
