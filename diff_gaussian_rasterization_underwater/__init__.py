@@ -13,6 +13,7 @@ from typing import NamedTuple
 import torch.nn as nn
 import torch
 from . import _C
+import pdb
 from typing import Optional
 
 
@@ -150,7 +151,7 @@ class _RasterizeGaussians(torch.autograd.Function):
                 imgBuffer,
                 raster_settings.antialiasing,
                 raster_settings.debug)
-
+        # pdb.set_trace() #
         # Compute gradients for relevant tensors by invoking backward method
         grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_medium_rgb, grad_medium_bs,   \
                 grad_medium_attn, grad_colors_enhance, grad_sh, grad_scales, grad_rotations = _C.rasterize_gaussians_backward_underwater(*args)
