@@ -128,6 +128,14 @@ def ray_encoding(H,W,FoVx,FoVy,R):
     directions_flat = directions.view(-1, 3) @ R.T  # 矩阵乘法，旋转方向向量
     return directions_flat
 
+
+def position_encoding(means3D,viewpoint_camera):
+    # 计算光线方向
+    rays_o = means3D # 位置
+    rays_d = means3D - viewpoint_camera.camera_center.expand(means3D.shape) # 方向
+    rays_d = rays_d / torch.norm(rays_d, dim=-1, keepdim=True)
+    return rays_d
+
 def batchify(fn, chunk): # nerf/run_nerf.py里面的函数
     """Constructs a version of 'fn' that applies to smaller batches.
     """

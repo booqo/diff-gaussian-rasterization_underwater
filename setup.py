@@ -26,6 +26,16 @@ setup(
                 "rasterize_points.cu",                # 点渲染 CUDA 文件
                 "ext.cpp"                             # C++ 与 Python 的绑定实现
             ],
+
+            include_dirs=[
+                "/usr/local/cuda-11.8/include",  # CUDA include 路径
+                "/media/asus/32A6EEC5E12B6F66/anaconda3/envs/gaussian_splatting/include/python3.7m"  # Python 头文件路径
+            ],
+            library_dirs=[
+                "/usr/local/cuda-11.8/lib64",  # CUDA lib 路径
+                "/media/asus/32A6EEC5E12B6F66/anaconda3/envs/gaussian_splatting/lib"  # Python 库路径
+            ],
+
             extra_compile_args={
                 "nvcc": [
                     "-I" + os.path.join(os.path.dirname(os.path.abspath(__file__)), "third_party/glm/")
