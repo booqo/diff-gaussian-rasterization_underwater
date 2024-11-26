@@ -7,3 +7,4 @@ __pycache__/
 *.pyc
 .idea/
 test_colmap_data/result/*
+diff_gaussian_rasterization_underwater/__pycache__/*
