@@ -6,4 +6,4 @@ __pycache__/
 *.egg-info/
 *.pyc
 .idea/
-test_colmap_data/result/renderings
+test_colmap_data/result/*
