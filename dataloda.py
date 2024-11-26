@@ -15,8 +15,10 @@ from utils.sh_utils import eval_sh
 import matplotlib.pyplot as plt
 from utils.loss_utils import l1_loss, ssim, raw_loss, l2_loss, BackscatterLoss, DeattenuateLoss
 from MLP.mlp import ray_encoding
-from MLP.mlp import run_waternetwork,run_network,get_embedder
+from MLP.mlp import run_waternetwork,run_network,get_embedder,position_encoding
 import MLP.__init__
+from utils.general_utils import safe_state
+
 
 
 def render(viewpoint_camera, pc: GaussianModel, pipe, bg_color: torch.Tensor, model, medium_mlp, embed_fn, embeddirs_fn,
@@ -40,13 +42,9 @@ def render(viewpoint_camera, pc: GaussianModel, pipe, bg_color: torch.Tensor, mo
     H = int(viewpoint_camera.image_height)
     W = int(viewpoint_camera.image_width)
     R =viewpoint_camera.R
-    input_vect = ray_encoding(H,W,tanfovx,tanfovy,R)
+    # input_vect = ray_encoding(H,W,tanfovx,tanfovy,R)
+    input_vect = position_encoding(pc.get_xyz ,viewpoint_camera,)
 
-    # 添加检查 input_vect 是否包含 NaN 或 Inf
-    if torch.isnan(input_vect).any():
-        print("Warning: NaN found in input_vect")
-    if torch.isinf(input_vect).any():
-        print("Warning: Inf found in input_vect")
 
     raster_underwater_settings = GaussianRasterizationSettings(
         image_height=int(viewpoint_camera.image_height), # 输出图像高度
@@ -144,7 +142,7 @@ def training1(dataset, pipe=None, opt=None):
     medium_mlp = MLP.medium_mlp
 
 
-    for iteration in range(0, 10):
+    for iteration in range(0, 1000):
         render_pkg = render(viewpoint_cam, gaussians, pipe, bg, model=model, medium_mlp=medium_mlp, embed_fn=None, embeddirs_fn = embeddirs_fn)
 
         image, viewspace_point_tensor, visibility_filter, radii, medium_rgb, color_clr, depths, color_attn = \
@@ -268,9 +266,11 @@ def training(dataset, pipe=None, opt=None):
     # model.train()
     medium_mlp.train()
 
-    for iteration in range(0, 10):
+    losses = []
+
+    for iteration in range(0, 1000):
         # 清零梯度
-        # MLP.optimizer_enhance.zero_grad(set_to_none=True)
+        MLP.optimizer_enhance.zero_grad(set_to_none=True)
         MLP.optimizer_medium.zero_grad(set_to_none=True)
 
         # 前向传播和损失计算
@@ -280,27 +280,30 @@ def training(dataset, pipe=None, opt=None):
              render_pkg["radii"], render_pkg["medium_rgb"], render_pkg["color_clr"],
              render_pkg["depths"], render_pkg["color_attn"])
 
-        direct = torch.clamp(color_attn, 0., 1.) #多余
+        gt_image = viewpoint_cam.original_image.cuda()  # （3，H，W）
+
+        direct = torch.clamp((gt_image-medium_rgb), 0., 1.) #多余
         J = color_clr
         # lossFunction = torch.nn.MSELoss
-        # bs_criterion = BackscatterLoss().to('cuda')
-        # da_criterion = DeattenuateLoss().to('cuda')
+        bs_criterion = BackscatterLoss().to('cuda')
+        da_criterion = DeattenuateLoss().to('cuda')
 
-        # bs_loss = bs_criterion(direct)
-        # da_loss = da_criterion(direct, J)
+        bs_loss = bs_criterion(direct)
+        da_loss = da_criterion(direct, J)
+
         # loss1 = bs_loss + da_loss
-        loss1 = (direct- J)**2
-        scalar_loss = loss1.mean()
+        # loss1 = (direct- J)**2
+        # scalar_loss = loss1.mean()
         # gt_image = viewpoint_cam.original_image.cuda()
         #
-        # Ll1 = l1_loss(image, gt_image)
-        # ssim_value = ssim(image, gt_image)
-        # loss1 = (0.8) * Ll1 + 0.2 * (1.0 - ssim_value)
+        Ll1 = l1_loss(image, gt_image)
+        ssim_value = ssim(image, gt_image)
+        loss1 = (0.8) * Ll1 + 0.2 * (1.0 - ssim_value) + bs_loss + da_loss
 
         # loss =loss1 + bs_loss + da_loss
 
         # 反向传播
-        scalar_loss.backward()
+        loss1.backward()
         # torch.autograd.set_detect_anomaly(True)
 
 
@@ -309,20 +312,81 @@ def training(dataset, pipe=None, opt=None):
         # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         # 优化器更新
         MLP.optimizer_medium.step()
-        # MLP.optimizer_enhance.step()
+        MLP.optimizer_enhance.step()
 
         # 打印损失
-        print(f"Iteration {iteration}, Loss: {scalar_loss.item()}")
+        print(f"Iteration {iteration}, Loss: {loss1.item()}")
+        print(f"Iteration {iteration}, Loss: {loss1.item()}")
+
+        losses.append(loss1.item())
+
+    # 训练结束后绘制损失曲线
+    plt.figure(figsize=(10, 5))  # 设置图形大小
+    plt.plot(losses, label='Training Loss')  # 绘制损失值
+    plt.title('Loss Curve over Iterations')  # 设置图表标题
+    plt.xlabel('Iterations')  # 设置x轴标签
+    plt.ylabel('Loss')  # 设置y轴标签
+    plt.legend()  # 显示图例
+    plt.show()  # 显示图表
 
 
-if __name__ =="__main__":
-    parser = ArgumentParser(description="dataloda")
-    lp = ModelParams(parser)#模型参数
-    # op = OptimizationParams(parser)#各种优化参数参数
+# if __name__ =="__main__":
+#     parser = ArgumentParser(description="dataloda")
+#     lp = ModelParams(parser)#模型参数
+#     # op = OptimizationParams(parser)#各种优化参数参数
+#     pp = PipelineParams(parser)
+#     # args = parser
+#     args = parser.parse_args()
+#
+#     # args.source_path = "/home/asus/桌面/lowlight_under_watergs/lowlight-gaussian-splatting-underwater/submodules/diff-gaussian-rasterization_underwater/test_colmap_data"
+#     # args.model_path = "/home/asus/桌面/lowlight_under_watergs/lowlight-gaussian-splatting-underwater/submodules/diff-gaussian-rasterization_underwater/test_colmap_data/data"
+#     args.source_path = "/media/asus/2d50eb40-f432-4954-bc07-5d4b5c5887cd/datasets_process/D3_seathru/colmap"
+#     args.model_path = "/media/asus/2d50eb40-f432-4954-bc07-5d4b5c5887cd/datasets_process/document_result/D3_seathru/unnamed/gaussian"
+#     training(lp.extract(args),pp.extract(args))
+
+
+if __name__ == "__main__":
+    # Set up command line argument parser
+    parser = ArgumentParser(description="Training script parameters")
+    lp = ModelParams(parser)
+    op = OptimizationParams(parser)
     pp = PipelineParams(parser)
-    # args = parser
-    args = parser.parse_args()
+    parser.add_argument('--ip', type=str, default="127.0.0.1")
+    parser.add_argument('--port', type=int, default=6009)
+    parser.add_argument('--debug_from', type=int, default=-1)
+    parser.add_argument('--detect_anomaly', action='store_true', default=False)
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[7_000, 30_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[7_000, 30_000])
+    parser.add_argument("--quiet", action="store_true")
+    parser.add_argument('--disable_viewer', action='store_true', default=False)
+    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
+    parser.add_argument("--start_checkpoint", type=str, default=None)
+    args = parser.parse_args(sys.argv[1:])
+    args.save_iterations.append(args.iterations)
 
-    args.source_path = "/home/asus/桌面/lowlight_under_watergs/lowlight-gaussian-splatting-underwater/submodules/diff-gaussian-rasterization_underwater/test_colmap_data"
-    args.model_path = "/home/asus/桌面/lowlight_under_watergs/lowlight-gaussian-splatting-underwater/submodules/diff-gaussian-rasterization_underwater/test_colmap_data/data"
-    training(lp.extract(args),pp.extract(args))
+    print("Optimizing " + args.model_path)
+
+    # Initialize system state (RNG)
+    safe_state(args.quiet)
+
+    # Start GUI server, configure and run training
+    if not args.disable_viewer:
+        # network_gui.init(args.ip, args.port)
+        pass
+    torch.autograd.set_detect_anomaly(args.detect_anomaly)
+
+    # args.source_path = "/home/asus/桌面/gaussian-splatting/data/campus"
+    # args.model_path = "./data/output/"
+
+    # args.source_path = "/media/asus/2d50eb40-f432-4954-bc07-5d4b5c5887cd/datasets_process/2_my_data_light/auto"
+    # args.model_path = "/media/asus/2d50eb40-f432-4954-bc07-5d4b5c5887cd/datasets_process/document_result/2_my_data_light/unnamed/gaussian"
+    # args.source_path = "/media/asus/2d50eb40-f432-4954-bc07-5d4b5c5887cd/datasets_process/Curasao"
+    # args.model_path = "/media/asus/2d50eb40-f432-4954-bc07-5d4b5c5887cd/datasets_process/document_result/Curasao/unnamed/gaussian"
+    args.source_path = "/media/asus/2d50eb40-f432-4954-bc07-5d4b5c5887cd/datasets_process/D3_seathru/colmap"
+    args.model_path = "/media/asus/2d50eb40-f432-4954-bc07-5d4b5c5887cd/datasets_process/document_result/D3_seathru/unnamed/gaussian"
+
+    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations,
+             args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
+
+    # All done
+    print("\nTraining complete.")
