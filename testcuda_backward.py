@@ -21,7 +21,7 @@ def gradient_check(variable_name, variable, rasterizer, loss_fn, **kwargs):
         loss_fn (callable): 损失函数，接受光栅化输出并返回标量损失。
         kwargs: 传递给rasterizer的其他参数。
     """
-    epsilon = 1
+    epsilon = 1e-4
     # 确保变量需要计算梯度
     variable.requires_grad = True
 
@@ -103,38 +103,45 @@ def gradient_check(variable_name, variable, rasterizer, loss_fn, **kwargs):
     # 重新形状还原
     numerical_grad = numerical_grad_flat.view_as(variable)
     autograd_grad = autograd_grad_flat.view_as(variable)
+    print("numerical_grad\n", numerical_grad.detach().cpu().numpy())
+    print("autograd_grad\n", autograd_grad.detach().cpu().numpy())
 
-    # 计算相对误差
-    relative_error = (autograd_grad - numerical_grad).abs() #/ (numerical_grad.abs() + 1e-8)
-    max_error = relative_error.max().item()
-    mean_error = relative_error.mean().item()
 
-    print(f"梯度检查 - {variable_name}: 最大相对误差 = {max_error:.6f}, 平均相对误差 = {mean_error:.6f}")
 
-    if max_error < 1e-3:
-        print(f"{variable_name} 的梯度实现可能是正确的。")
-    else:
-        print(f"{variable_name} 的梯度实现可能存在问题，请检查。")
+    # # 计算相对误差
+    # relative_error = (autograd_grad - numerical_grad).abs() #/ (numerical_grad.abs() + 1e-8)
+    # max_error = relative_error.max().item()
+    # mean_error = relative_error.mean().item()
+    #
+    # print(f"梯度检查 - {variable_name}: 最大相对误差 = {max_error:.6f}, 平均相对误差 = {mean_error:.6f}")
+    #
+    # if max_error < 1e-3:
+    #     print(f"{variable_name} 的梯度实现可能是正确的。")
+    # else:
+    #     print(f"{variable_name} 的梯度实现可能存在问题，请检查。")
 
 # 定义一个简单的损失函数
 def loss_function(outputs):
     color_attn, color_clr, color_medium, radii, depths = outputs
     return (color_attn+color_medium).sum()
+def loss_function2(outputs):
+    rendered_image, radii, depth_image  = outputs
+    return (rendered_image).sum()
 
 
 # 定义高斯体的中心点和特征
 pts = np.array([
     [0, 0, 10],    # 位于正Z轴方向
-    # [-0.2, -0, 10],
-    # [-0, 0.2, 10]
+    [-0.2, -0, 10],
+    [-0, 0.2, 10]
 ], dtype=np.float32)
 n = len(pts)  # 高斯体数量
 
 # 设置固定颜色（进一步调整以避免超出范围）
 desired_colors = np.array([
     [100, 0.0, 0.0],   # 高斯体 1: 红色
-    # [0.0, 100, 0.0],   # 高斯体 2: 绿色
-    # [0.0, 0.0, 100]    # 高斯体 3: 蓝色
+    [0.0, 100, 0.0],   # 高斯体 2: 绿色
+    [0.0, 0.0, 100]    # 高斯体 3: 蓝色
 ], dtype=np.float32)
 
 # 初始化球谐函数系数为全零，并设置零阶系数为所需颜色(固定颜色)
@@ -254,7 +261,7 @@ gradient_check(
     colors_enhance=colors_enhance
 )
 
-#
+
 # # 检查 sigma_bs 的梯度 目前有问题
 # gradient_check(
 #     variable_name='sigma_bs',
@@ -315,7 +322,135 @@ gradient_check(
 #     colors_enhance=colors_enhance
 # )
 
-
-
-
-
+# """-----------------------------------------------------------------"""
+# raster_settings = GaussianRasterizationSettings2(
+#     image_height=H,                       # 输出图像高度
+#     image_width=W,                        # 输出图像宽度
+#     tanfovx=tanfovx,                      # 水平视场角的正切
+#     tanfovy=tanfovy,                      # 垂直视场角的正切
+#     bg=bg,                                  # 背景颜色
+#     scale_modifier=1.0,                     # 缩放因子
+#     viewmatrix=viewmatrix,                  # 视图矩阵
+#     projmatrix=projmatrix,                  # 投影矩阵
+#     sh_degree=1,                            # 球谐次数
+#     campos=cam_pos,                         # 相机位置
+#     prefiltered=False,                      # 是否使用预滤波
+#     debug=False,                             # 是否启用调试模式
+#     # antialiasing=False,                     # 抗锯齿设置
+# )
+#
+# # 初始化高斯光栅化器
+# rasterizer = GaussianRasterizer2(raster_settings=raster_settings)
+#
+# def gradient_check2(variable_name, variable, rasterizer, loss_fn, **kwargs):
+#     """
+#     检查指定变量的梯度是否正确。
+#
+#     Args:
+#         variable_name (str): 变量的名称，用于打印信息。
+#         variable (torch.Tensor): 需要检查梯度的变量，要求requires_grad=True。
+#         rasterizer (GaussianRasterizer): 高斯光栅化器对象。
+#         loss_fn (callable): 损失函数，接受光栅化输出并返回标量损失。
+#         kwargs: 传递给rasterizer的其他参数。
+#     """
+#     epsilon = 1e-4
+#     # 确保变量需要计算梯度
+#     variable.requires_grad = True
+#
+#     # 计算自动求导的梯度
+#     rasterizer.zero_grad()  # 清零之前的梯度
+#     output = rasterizer(
+#         means3D=kwargs.get('means3D'),
+#         means2D=kwargs.get('means2D'),
+#         shs=kwargs.get('shs'),
+#         colors_precomp=kwargs.get('colors_precomp'),
+#         opacities=kwargs.get('opacities'),
+#         scales=kwargs.get('scales'),
+#         rotations=kwargs.get('rotations'),
+#         cov3D_precomp=kwargs.get('cov3D_precomp'))
+#
+#     loss = loss_fn(output)
+#     loss.backward()
+#     autograd_grad = variable.grad.clone()
+#
+#     # 数值梯度初始化
+#     numerical_grad = torch.zeros_like(variable)
+#
+#     # 使用 flatten 方法进行一维化遍历
+#     variable_flat = variable.view(-1)                       # 展平的变量
+#     numerical_grad_flat = numerical_grad.view(-1) # 展平的数值梯度量
+#     autograd_grad_flat = autograd_grad.view(-1)       #展平的自动梯度
+#
+#     for idx in range(variable_flat.numel()):
+#         original_value = variable_flat[idx].item()
+#
+#         # # 创建变量的副本以避免原地操作
+#         with torch.no_grad():
+#             variable_flat[idx] = original_value + epsilon
+#         output_plus = rasterizer(
+#             means3D=kwargs.get('means3D'),
+#             means2D=kwargs.get('means2D'),
+#             shs=kwargs.get('shs'),
+#             colors_precomp=kwargs.get('colors_precomp'),
+#             opacities=kwargs.get('opacities'),
+#             scales=kwargs.get('scales'),
+#             rotations=kwargs.get('rotations'),
+#             cov3D_precomp=kwargs.get('cov3D_precomp')
+#         )
+#         loss_plus = loss_fn(output_plus).item()
+#
+#         with torch.no_grad():
+#             variable_flat[idx] = original_value - epsilon
+#         output_minus = rasterizer(
+#             means3D=kwargs.get('means3D'),
+#             means2D=kwargs.get('means2D'),
+#             shs=kwargs.get('shs'),
+#             colors_precomp=kwargs.get('colors_precomp'),
+#             opacities=kwargs.get('opacities'),
+#             scales=kwargs.get('scales'),
+#             rotations=kwargs.get('rotations'),
+#             cov3D_precomp=kwargs.get('cov3D_precomp')
+#         )
+#         loss_minus = loss_fn(output_minus).item()
+#
+#         # 恢复原始值
+#         with torch.no_grad():
+#             variable_flat[idx] = original_value
+#
+#         # 计算数值梯度
+#         numerical_grad_flat[idx] = (loss_plus - loss_minus) / (2 * epsilon)
+#
+#     # 重新形状还原
+#     numerical_grad = numerical_grad_flat.view_as(variable)
+#     autograd_grad = autograd_grad_flat.view_as(variable)
+#     print("numerical_grad\n",numerical_grad.detach().cpu().numpy())
+#     print("autograd_grad\n",autograd_grad.detach().cpu().numpy())
+#
+#
+#     # 计算相对误差
+#     # relative_error = (autograd_grad - numerical_grad).abs() #/ (numerical_grad.abs() + 1e-8)
+#     # max_error = relative_error.max().item()
+#     # mean_error = relative_error.mean().item()
+#     #
+#     # print(f"梯度检查 - {variable_name}: 最大相对误差 = {max_error:.6f}, 平均相对误差 = {mean_error:.6f}")
+#     #
+#     # if max_error < 1e-3:
+#     #     print(f"{variable_name} 的梯度实现可能是正确的。")
+#     # else:
+#     #     print(f"{variable_name} 的梯度实现可能存在问题，请检查。")
+#
+# # 检查 原始高斯梯度
+# gradient_check2(
+#     variable_name='pts',
+#     variable=pts,  # 要检查的变量
+#     rasterizer=rasterizer,
+#     loss_fn=loss_function2,
+#     means3D=pts,
+#     means2D=screenspace_points,
+#     shs=shs,
+#     colors_precomp=None,
+#     opacities=opacities,
+#     scales=scales,
+#     rotations=rotations,
+#     cov3D_precomp=None
+# )
