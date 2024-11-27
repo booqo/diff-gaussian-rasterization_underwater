@@ -404,18 +404,19 @@ for test_param in water_list:
         colors_enhance=colors_enhance
     )
 
-# # 检查 原始高斯光栅化梯度
-# gradient_check_gs(
-#     variable_name='shs',
-#     variable=shs,  # 要检查的变量
-#     rasterizer=rasterizer2,
-#     loss_fn=loss_function_gs,
-#     means3D=pts,
-#     means2D=screenspace_points,
-#     shs=shs,
-#     colors_precomp=None,
-#     opacities=opacities,
-#     scales=scales,
-#     rotations=rotations,
-#     cov3D_precomp=None
-# )
+for test_param in gs_list:
+    # 检查 原始高斯光栅化梯度
+    gradient_check_gs(
+        variable_name='test_param',
+        variable=gs_list[test_param],  # 要检查的变量
+        rasterizer=rasterizer2,
+        loss_fn=loss_function_gs,
+        means3D=pts,
+        means2D=screenspace_points,
+        shs=shs,
+        colors_precomp=None,
+        opacities=opacities,
+        scales=scales,
+        rotations=rotations,
+        cov3D_precomp=None
+    )
