@@ -1001,7 +1001,7 @@ renderCUDA(
 			// is behind the last contributor for this pixel.
 			contributor--;
 			if (pix_id == 0 )
-				printf("\n\n\n , j is %d",j);
+// 				printf("\n\n\n , j is %d",j);
 			if (contributor >= last_contributor)
 				continue;
 
