@@ -68,6 +68,9 @@ RasterizeGaussiansCUDA_underwater(
   const int H = image_height;
   const int W = image_width;
 
+  printf("P: %d, H: %d, W: %d\n", P, H, W);
+  
+
   auto int_opts = means3D.options().dtype(torch::kInt32);
   auto float_opts = means3D.options().dtype(torch::kFloat32);
 

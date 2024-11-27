@@ -449,8 +449,11 @@ renderCUDA(
 			// Avoid numerical instabilities (see paper appendix). 
 			float alpha = min(0.99f, con_w * exp(power));
 
-			// if(pix_id == 0)
-			// 	printf("T_i is: %f , and alpha_i is alpha %f \n", T , alpha );
+			if(pix_id == 0)
+			{
+				printf("T_i is: %f , and alpha_i is alpha %f \n", T , alpha );
+			}
+				
 			if (alpha < 1.0f / 255.0f)
 			{	
 				// if(pix_id == 0)
@@ -492,13 +495,13 @@ renderCUDA(
 			const float3 color_obj = {collected_color_x[j]*colors_enhance_pix.x, 
 				collected_color_y[j]*colors_enhance_pix.y , collected_color_z[j]*colors_enhance_pix.z}; //s_i
 
-			// if(pix_id == 0)
-			// {
-			// 	printf("exp_obj is: %f , %f , %f \n", exp_obj.x , exp_obj.y , exp_obj.z );
-			// 	printf("O_i is : %f , %f , %f \n", collected_color_x[j] , collected_color_y[j] , collected_color_z[j] );
-			// 	printf("phi is: %f , %f , %f \n", colors_enhance_pix.x , colors_enhance_pix.y , colors_enhance_pix.z );
-			// 	printf("color obj is: %f , %f , %f \n", color_obj.x , color_obj.y , color_obj.z );
-			// }
+			if(pix_id == 0)
+			{
+				printf("exp_obj is: %f , %f , %f \n", exp_obj.x , exp_obj.y , exp_obj.z );
+				printf("O_i is : %f , %f , %f \n", collected_color_x[j] , collected_color_y[j] , collected_color_z[j] );
+				printf("phi is: %f , %f , %f \n", colors_enhance_pix.x , colors_enhance_pix.y , colors_enhance_pix.z );
+				printf("color obj is: %f , %f , %f \n", color_obj.x , color_obj.y , color_obj.z );
+			}
 				
 
 			const float3 c_out = {vis * color_obj.x, vis * color_obj.y, vis * color_obj.z};
@@ -515,13 +518,13 @@ renderCUDA(
 			// if(invdepth)
 			// 	expected_invdepth += (1 / depths[collected_id[j]]) * alpha * T;
 
-			// if(pix_id == 0)
-			// {
-			// 	printf("medium rgb is: %f , %f , %f \n", medium_rgb_pix.x , medium_rgb_pix.y , medium_rgb_pix.z );
-			// 	printf("medium bs is: %f , %f , %f \n", medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z );
-			// 	printf("prev depth is : %f \n", prev_depth );
-			// 	printf("cur depth is : %f \n", cur_depth );
-			// }
+			if(pix_id == 0)
+			{
+				printf("medium rgb is: %f , %f , %f \n", medium_rgb_pix.x , medium_rgb_pix.y , medium_rgb_pix.z );
+				printf("medium bs is: %f , %f , %f \n", medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z );
+				printf("prev depth is : %f \n", prev_depth );
+				printf("cur depth is : %f \n", cur_depth );
+			}
 
 			float3 exp_bs;
             exp_bs.x = exp(-medium_bs_pix.x * prev_depth) - exp(-medium_bs_pix.x * cur_depth);
@@ -531,11 +534,11 @@ renderCUDA(
             pix_medium.y = pix_medium.y + T * exp_bs.y * medium_rgb_pix.y;
             pix_medium.z = pix_medium.z + T * exp_bs.z * medium_rgb_pix.z;
 
-			// if(pix_id == 0)
-			// {
-			// 	printf("pix out accum is: %f , %f , %f \n", pix_out.x , pix_out.y , pix_out.z );
-			// 	printf("pix medium accum is: %f , %f , %f \n", pix_medium.x , pix_medium.y , pix_medium.z );
-			// }
+			if(pix_id == 0)
+			{
+				printf("pix out accum is: %f , %f , %f \n", pix_out.x , pix_out.y , pix_out.z );
+				printf("pix medium accum is: %f , %f , %f \n", pix_medium.x , pix_medium.y , pix_medium.z );
+			}
 
 			prev_depth = cur_depth;
 			T = test_T;
@@ -552,14 +555,15 @@ renderCUDA(
 	{
 		final_T[pix_id] = T;
 		n_contrib[pix_id] = last_contributor;
+		float cur_depth = 100.;
 
 		float3 final_medium;
         // add medium scattering
         float3 exp_bs;
         // const float depth = 10.f;
-        exp_bs.x = __expf(-medium_bs_pix.x * prev_depth);
-        exp_bs.y = __expf(-medium_bs_pix.y * prev_depth);
-        exp_bs.z = __expf(-medium_bs_pix.z * prev_depth);
+        exp_bs.x = __expf(-medium_bs_pix.x * prev_depth) - __expf(-medium_bs_pix.x * cur_depth);
+        exp_bs.y = __expf(-medium_bs_pix.y * prev_depth) - __expf(-medium_bs_pix.x * cur_depth);
+        exp_bs.z = __expf(-medium_bs_pix.z * prev_depth) - __expf(-medium_bs_pix.x * cur_depth);
 
         final_medium.x = pix_medium.x + T * exp_bs.x * medium_rgb_pix.x;
         final_medium.y = pix_medium.y + T * exp_bs.y * medium_rgb_pix.y;
@@ -574,15 +578,15 @@ renderCUDA(
 		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
 		depth_im[pix_id] = expected_depth;//输出在这
 
-		// if(pix_id == 0)
-		// {
-		// 	printf("final ！！！！！ \n" );
-		// 	printf("medium bs is: %f , %f , %f \n", medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z );
-		// 	printf("exp bs is: %f , %f , %f \n", exp_bs.x , exp_bs.y , exp_bs.z );
-		// 	printf("final medium is: %f , %f , %f \n", final_medium.x , final_medium.y , final_medium.z );
-		// 	printf("final img is : %f , %f , %f \n", pix_out.x , pix_out.y , pix_out.z );
-		// 	printf("\n\n\n\n");
-		// }
+		if(pix_id == 0)
+		{
+			printf("final ！！！！！ \n" );
+			printf("medium bs is: %f , %f , %f \n", medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z );
+			printf("exp bs is: %f , %f , %f \n", exp_bs.x , exp_bs.y , exp_bs.z );
+			printf("final medium is: %f , %f , %f \n", final_medium.x , final_medium.y , final_medium.z );
+			printf("final img is : %f , %f , %f \n", pix_out.x , pix_out.y , pix_out.z );
+			printf("\n\n\n\n");
+		}
 		
 
 		//out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = 0.5;

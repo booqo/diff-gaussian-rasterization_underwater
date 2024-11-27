@@ -231,6 +231,17 @@ int CudaRasterizer::Rasterizer::forward(
 	const float focal_y = height / (2.0f * tan_fovy);
 	const float focal_x = width / (2.0f * tan_fovx);
 
+	printf("width is %d, height is %d\n", width, height);
+
+	for(int i = 0 ; i < height ; i++)
+	{
+		for(int j = 0 ; j < width ; j++)
+		{
+			printf("i is %d, j is %d\n", i, j);
+			printf("medium_bs is %f %f %f\n", medium_bs[i * width + j].x, medium_bs[i * width + j].y, medium_bs[i * width + j].z);
+		}
+	}
+
 	size_t chunk_size = required<GeometryState>(P);
 	char* chunkptr = geometryBuffer(chunk_size);
 	GeometryState geomState = GeometryState::fromChunk(chunkptr, P);

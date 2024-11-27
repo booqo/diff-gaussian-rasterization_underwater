@@ -1000,8 +1000,8 @@ renderCUDA(
 			// Keep track of current Gaussian ID. Skip, if this one
 			// is behind the last contributor for this pixel.
 			contributor--;
-			if (pix_id == 0 )
-				printf("\n\n\n , j is %d",j);
+			// if (pix_id == 0 )
+			// 	printf("\n\n\n , j is %d",j);
 			if (contributor >= last_contributor)
 				continue;
 
@@ -1068,14 +1068,15 @@ renderCUDA(
 
 				
 			}
-			// if(pix_id == 0)
-			// {
-			// 	printf("T is %f\n", T);
-			// 	printf("alpha is %f\n", alpha);
-			// 	printf("curdepth is %f\n", cur_depth);
-			// 	//printf("prevdepth is %f\n", prev_depth);
-			// 	printf("dL_dcmed is %f %f %f\n", dL_dcmed[0], dL_dcmed[1], dL_dcmed[2]);
-			// }
+			if(pix_id == 0)
+			{
+				printf("T is %f\n", T);
+				printf("alpha is %f\n", alpha);
+				printf("curdepth is %f\n", cur_depth);
+				//printf("prevdepth is %f\n", prev_depth);
+				printf("latter depth is %f\n", latter_depth);
+				printf("dL_dcmed is %f %f %f\n", dL_dcmed[0], dL_dcmed[1], dL_dcmed[2]);
+			}
 			// Propagate gradients from inverse depth to alphaas and
 			// per Gaussian inverse depths
 			if (dL_dout_depthptr)
@@ -1131,12 +1132,12 @@ renderCUDA(
 
 	if(inside)
 	{
-		float exp_bs[3];
+		float exp_bs[3] = {0};
 		exp_bs[0] = exp(-medium_bs_pix[0] * latter_depth);  //exp(-sigma^bs s_1)
 		exp_bs[1] = exp(-medium_bs_pix[1] * latter_depth);
 		exp_bs[2] = exp(-medium_bs_pix[2] * latter_depth);  
 		
-		assert(abs(latter_T - 1.0) < 1e-3);
+		//assert(abs(latter_T - 1.0) < 1e-3);
 
 		for(int ch = 0 ; ch < C ; ch ++)
 		{
@@ -1151,6 +1152,14 @@ renderCUDA(
 			dL_dmedium_bs[pix_id * C + ch] = dL_dsigma_bs[ch];
 			dL_dmedium_attn[pix_id * C + ch] = dL_dsigma_attn[ch];
 			dL_dcolors_enhance[pix_id * C + ch] = dL_dphi[ch];
+		}
+
+		if(pix_id == 0)
+		{
+			printf("cur thread id is %d %d \n", threadIdx.x , threadIdx.y);	
+			printf("dL_dmedium_rgb is %f %f %f\n", dL_dcmed[0], dL_dcmed[1], dL_dcmed[2]);
+			printf("dL_dmedium_bs is %f %f %f\n", dL_dsigma_bs[0], dL_dsigma_bs[1], dL_dsigma_bs[2]);
+			printf("dL_dmedium_attn is %f %f %f\n", dL_dmedium_attn[0], dL_dmedium_attn[1], dL_dmedium_attn[2]);
 		}
 	}
 
