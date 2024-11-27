@@ -8,6 +8,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from testcuda_forward import getWorld2View2,getProjectionMatrix
+import os
+
 def gradient_check(variable_name, variable, rasterizer, loss_fn, **kwargs):
     """
     检查指定变量的梯度是否正确。
@@ -103,8 +105,8 @@ def gradient_check(variable_name, variable, rasterizer, loss_fn, **kwargs):
     # print("numerical_grad\n", numerical_grad.detach().cpu().numpy())
     # print("autograd_grad\n", autograd_grad.detach().cpu().numpy())
 
-    save_gradient_as_image(numerical_grad, f'grad_image/water_grad/{variable_name}water_numerical_grad.png',variable_name,"Water")
-    save_gradient_as_image(autograd_grad, f'grad_image/water_grad/{variable_name}water_autograd_grad.png',variable_name,"Water")
+    save_gradient_as_image(numerical_grad, f'grad_image/water_grad/{variable_name}_water_numerical_grad.png',variable_name,"Water")
+    save_gradient_as_image(autograd_grad, f'grad_image/water_grad/{variable_name}_water_autograd_grad.png',variable_name,"Water")
     # save_gradient_channels_as_image(numerical_grad, 'water_grad/numerical_grad_channels.png')
     # save_gradient_channels_as_image(autograd_grad, 'water_grad/autograd_grad_channels.png')
 def gradient_check_gs(variable_name, variable, rasterizer, loss_fn, **kwargs):
@@ -190,31 +192,60 @@ def gradient_check_gs(variable_name, variable, rasterizer, loss_fn, **kwargs):
     autograd_grad = autograd_grad_flat.view_as(variable)
     # print("numerical_grad\n",numerical_grad.detach().cpu().numpy())
     # print("autograd_grad\n",autograd_grad.detach().cpu().numpy())
-    save_gradient_as_image(numerical_grad, f'grad_image/gs_grad/{variable_name}gs_numerical_grad.png',variable_name,"GS")
-    save_gradient_as_image(autograd_grad, f'grad_image/gs_grad/{variable_name}gs_autograd_grad.png',variable_name,"GS")
-
-def save_gradient_as_image(gradient, filename,variable_name,chose):
+    save_gradient_as_image(numerical_grad, f'grad_image/gs_grad/{variable_name}_gs_numerical_grad.png',variable_name,"GS")
+    save_gradient_as_image(autograd_grad, f'grad_image/gs_grad/{variable_name}_gs_autograd_grad.png',variable_name,"GS")
+def save_gradient_as_image_old(gradient, filename,variable_name,chose):
+    grad_array = gradient.detach().cpu().numpy()
+    grad_norm = (grad_array - np.min(grad_array)) / (np.max(grad_array) - np.min(grad_array) + 1e-5)
+    plt.imshow(grad_norm, cmap='viridis')
+    plt.colorbar()
+    plt.title(f'{chose}-{variable_name} Gradient Normalization Visualization')
+    plt.axis('off')
+    plt.savefig(filename)
+    plt.close()
+def save_gradient_as_image(gradient, filename, variable_name, chose):
     """
-    Normalize and save the gradient tensor as an image.
+    Normalize and save the gradient tensor as an image, including max and min values.
+    Also ensures that the target directory exists; if not, creates it.
 
     Args:
-    gradient (torch.Tensor): The gradient tensor to visualize.
-    filename (str): The path to save the image file.
+        gradient (torch.Tensor): The gradient tensor to visualize.
+        filename (str): The path to save the image file.
+        variable_name (str): Name of the variable being visualized (for title).
+        chose (str): Additional identifier for the title.
     """
     # Detach gradient, move to CPU and convert to numpy
     grad_array = gradient.detach().cpu().numpy()
 
+    # Compute actual min and max before normalization
+    grad_min = np.min(grad_array)
+    grad_max = np.max(grad_array)
+
     # Normalize the gradient to 0-1 for better visualization
-    grad_norm = (grad_array - np.min(grad_array)) / (np.max(grad_array) - np.min(grad_array) + 1e-5)
+    grad_norm = (grad_array - grad_min) / (grad_max - grad_min + 1e-5)
+
+    # Ensure the directory exists
+    directory = os.path.dirname(filename)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
 
     # Plotting
+    plt.figure(figsize=(8, 6))
     plt.imshow(grad_norm, cmap='viridis')  # You can choose a colormap that fits your needs
     plt.colorbar()
-    plt.title(f'{chose}-{variable_name} Gradient Normalization Visualization')
+
+    # Add max and min values as text on the image
+    plt.text(0.95, 0.05, f'Max: {grad_max:.4f}\nMin: {grad_min:.4f}',
+             verticalalignment='bottom', horizontalalignment='right',
+             transform=plt.gca().transAxes,
+             color='white', fontsize=12,
+             bbox=dict(facecolor='black', alpha=0.5, boxstyle='round,pad=0.5'))
+
+    plt.title(f'{chose} - {variable_name} Gradient Visualization')
     plt.axis('off')  # Turn off axis numbers and ticks
 
     # Save the plot as an image file
-    plt.savefig(filename)
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.1)
     plt.close()
 def save_gradient_channels_as_image(gradient, filename):
     """
@@ -372,7 +403,7 @@ def create_rasterizer2(H, W ,tanfovx,tanfovy, bg, viewmatrix,projmatrix,cam_pos)
     )
     return GaussianRasterizer2(raster_settings=raster_settings)
 
-H, W = 4, 4
+H, W = 100, 100
 cam_pos, viewmatrix, tanfovx,tanfovy,projmatrix = setup_camera_settings()#相机参数
 
 pts,shs,opacities,scales,rotations,screenspace_points = setup_gaussian_params(projmatrix) #高斯参数
@@ -407,7 +438,7 @@ for test_param in water_list:
 for test_param in gs_list:
     # 检查 原始高斯光栅化梯度
     gradient_check_gs(
-        variable_name='test_param',
+        variable_name=test_param,
         variable=gs_list[test_param],  # 要检查的变量
         rasterizer=rasterizer2,
         loss_fn=loss_function_gs,
