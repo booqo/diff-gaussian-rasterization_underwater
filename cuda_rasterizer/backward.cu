@@ -450,6 +450,385 @@ __global__ void preprocessCUDA(
 		computeCov3D(idx, scales[idx], scale_modifier, rotations[idx], dL_dcov3D, dL_dscale, dL_drot);
 }
 
+// // Backward version of the rendering procedure.
+// template <uint32_t C>
+// __global__ void __launch_bounds__(BLOCK_X * BLOCK_Y)
+// renderCUDA(
+// 	const uint2* __restrict__ ranges,
+// 	const uint32_t* __restrict__ point_list,
+// 	int W, int H,
+// 	const float* __restrict__ bg_color,
+// 	const float2* __restrict__ points_xy_image,
+// 	const float4* __restrict__ conic_opacity,
+// 	const float* __restrict__ colors,   //O_i P*3
+// 	const float* __restrict__ depths,
+// 	const float* __restrict__ final_Ts,
+// 	const uint32_t* __restrict__ n_contrib,
+// 	const float3* __restrict__ medium_rgb, //介质颜色  cmed
+// 	const float3* __restrict__ medium_bs, //介质 \sigma bs
+// 	const float3* __restrict__ medium_attn,
+// 	const float3* __restrict__ colors_enhance,   //phi
+// 	const float* __restrict__ dL_dout_color_image, // 3 * H * W  dL_dC1  
+// 	const float* __restrict__ dL_dout_color_clr, // 3 * H * W
+// 	const float* __restrict__ dL_dout_color_cmed,  // 3 * H * W  dL_dC2
+// 	//const float* __restrict__ dL_invdepths,
+// 	const float* __restrict__ dL_dout_depthptr,
+// 	float3* __restrict__ dL_dmean2D,
+// 	float4* __restrict__ dL_dconic2D,
+// 	float* __restrict__ dL_dopacity,
+// 	float* __restrict__ dL_dmedium_rgb,  //H W 3
+// 	float* __restrict__ dL_dmedium_bs,   //H W 3
+// 	float* __restrict__ dL_dmedium_attn,   //H W 3
+// 	float* __restrict__ dL_dcolors,   //P*3
+// 	float* __restrict__ dL_dcolors_enhance,  //H W 3
+// 	float* __restrict__ dL_ddepthptr
+// 	//float* __restrict__ dL_dinvdepths   //get dl_dmean2D, dl_dopacity, dl_dcolors, dl_dinvdepths
+// )
+// {
+// 	// We rasterize again. Compute necessary block info.
+// 	auto block = cg::this_thread_block();
+// 	const uint32_t horizontal_blocks = (W + BLOCK_X - 1) / BLOCK_X;
+// 	const uint2 pix_min = { block.group_index().x * BLOCK_X, block.group_index().y * BLOCK_Y };
+// 	const uint2 pix_max = { min(pix_min.x + BLOCK_X, W), min(pix_min.y + BLOCK_Y , H) };
+// 	const uint2 pix = { pix_min.x + block.thread_index().x, pix_min.y + block.thread_index().y };
+// 	const uint32_t pix_id = W * pix.y + pix.x;
+// 	const float2 pixf = { (float)pix.x, (float)pix.y };
+
+// 	const bool inside = pix.x < W&& pix.y < H;
+// 	const uint2 range = ranges[block.group_index().y * horizontal_blocks + block.group_index().x];   //get range
+
+// 	const int rounds = ((range.y - range.x + BLOCK_SIZE - 1) / BLOCK_SIZE);
+
+// 	bool done = !inside;
+// 	int toDo = range.y - range.x;
+
+// 	// if(block.thread_rank() == 0)
+// 	// 	printf("block id x is %d, and block id y is %d , and continue0\n" , block.group_index().x, block.group_index().y);
+
+
+// 	__shared__ int collected_id[BLOCK_SIZE];
+// 	__shared__ float2 collected_xy[BLOCK_SIZE];
+// 	__shared__ float4 collected_conic_opacity[BLOCK_SIZE];
+// 	__shared__ float collected_colors[C * BLOCK_SIZE];   //O_i
+// 	__shared__ float collected_depths[BLOCK_SIZE];
+// 	__shared__ float collected_prev_depths[BLOCK_SIZE];
+
+
+// 	// In the forward, we stored the final value for T, the
+// 	// product of all (1 - alpha) factors. 
+// 	const float T_final = inside ? final_Ts[pix_id] : 0;
+// 	float T = T_final;
+
+// 	// We start from the back. The ID of the last contributing
+// 	// Gaussian is known from each pixel from the forward.
+// 	uint32_t contributor = toDo;
+// 	const int last_contributor = inside ? n_contrib[pix_id] : 0;
+// 	if(pix_id == 0)
+// 		printf("last_contributor is %d\n", last_contributor);
+
+// 	float accum_rec[C] = { 0 };
+
+// 	float accum_rec_med[C] = { 0 };
+
+// 	float dL_dpixel1[C] = {0};  //obj  dL/dC1
+// 	float dL_dpixel2[C] = {0};  //cmed  dL/dC2
+
+// 	float dL_dcmed[C] = {0};  //obj  dL/dC1
+// 	float dL_dsigma_bs[C] = {0};  //cmed  dL/dC2
+// 	float dL_dsigma_attn[C] = {0};
+// 	float dL_dphi[C] = {0};
+
+
+// 	float dL_outdepth;
+// 	float accum_depth_rec = 0;
+// 	if (inside)
+// 	{
+// 		for (int i = 0; i < C; i++)
+// 		{
+// 			dL_dpixel1[i] = dL_dout_color_image[i * H * W + pix_id];
+// 			dL_dpixel2[i] = dL_dout_color_cmed[i * H * W + pix_id];
+// 		}
+			
+// 		// if(dL_invdepths)
+// 		// 	dL_invdepth = dL_invdepths[pix_id];
+// 		if(dL_dout_depthptr)
+// 			dL_outdepth = dL_dout_depthptr[pix_id];
+
+		
+// 	}
+
+// 	// if(block.thread_rank() == 0)
+// 	// 	printf("block id x is %d, and block id y is %d , and continue1\n" , block.group_index().x, block.group_index().y);
+
+
+
+// 	float medium_rgb_pix[3] = {0}; // cmed
+//     float medium_bs_pix[3] = {0};  //sigma_bs
+//     float medium_attn_pix[3] = {0};  //sigma_attn
+// 	float colors_enhance_pix[3] = {0};  //phi
+//     //float max_medium_attn_pix;
+// 	float prev_depth;
+
+// 	if (inside) {
+//         medium_rgb_pix[0] = medium_rgb[pix_id].x; medium_rgb_pix[1] = medium_rgb[pix_id].y; medium_rgb_pix[2] = medium_rgb[pix_id].z;
+//         medium_bs_pix[0] = medium_bs[pix_id].x; medium_bs_pix[1] = medium_bs[pix_id].y; medium_bs_pix[2] = medium_bs[pix_id].z;
+//         medium_attn_pix[0] = medium_attn[pix_id].x; medium_attn_pix[1] = medium_attn[pix_id].y; medium_attn_pix[2] = medium_attn[pix_id].z;
+// 		colors_enhance_pix[0] = colors_enhance[pix_id].x; colors_enhance_pix[1] = colors_enhance[pix_id].y; colors_enhance_pix[2] = colors_enhance[pix_id].z;  
+//         prev_depth = 0.f;
+//         // get the biggest one of medium_attn_pix xyz
+//         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
+//     }
+
+// 	// for (int i = 0; i < C; i++)
+// 	// {
+// 	// 	dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
+// 	// }
+
+// 	// if(block.thread_rank() == 0)
+// 	// 	printf("block id x is %d, and block id y is %d , and continue2\n" , block.group_index().x, block.group_index().y);
+// 	//for (int i = 0; i < C; i++)
+// 	//{
+// 	//	dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
+// 	//}
+
+// 	float last_alpha = 0;
+// 	float last_T = 0;
+// 	float last_color_obj[C] = { 0 };    //def : exp(-sigma^attn s_i)O_i phi
+// 	float last_depth = 0.;
+// 	float last_c_bs[3] = {0};
+
+
+// 	// Gradient of pixel coordinate w.r.t. normalized 
+// 	// screen-space viewport corrdinates (-1 to 1)
+// 	const float ddelx_dx = 0.5 * W;
+// 	const float ddely_dy = 0.5 * H;
+
+// 	bool get_final = false;
+// 	float T_N1_expbs_cmed[3] = {0};
+// 	//assert(false);
+
+// 	// Traverse all Gaussians
+// 	if(pix_id == 0)
+// 	{
+// 		printf("range is %d %d\n", range.x, range.y);
+// 	}
+// 	for (int i = 0; i < rounds; i++, toDo -= BLOCK_SIZE)
+// 	{
+// 		// Load auxiliary data into shared memory, start in the BACK
+// 		// and load them in revers order.
+// 		block.sync();
+// 		const int progress = i * BLOCK_SIZE + block.thread_rank();
+// 		if (range.x + progress < range.y)
+// 		{
+// 			const int coll_id = point_list[range.y - progress - 1];  //back to front
+// 			collected_id[block.thread_rank()] = coll_id;
+// 			collected_xy[block.thread_rank()] = points_xy_image[coll_id];
+// 			collected_conic_opacity[block.thread_rank()] = conic_opacity[coll_id];
+// 			for (int i = 0; i < C; i++)
+// 				collected_colors[i * BLOCK_SIZE + block.thread_rank()] = colors[coll_id * C + i];   //O_i
+
+// 			//if(dL_invdepths)
+// 			collected_depths[block.thread_rank()] = depths[coll_id];
+// 		}
+// 		block.sync();
+// 		if (range.x + progress < range.y - 1)
+// 		{
+// 			//assert(range.y - progress - 2 >= range.x);
+// 			const int coll_id2 = point_list[range.y - progress - 2];
+// 			collected_prev_depths[block.thread_rank()] = depths[coll_id2];
+// 			if(pix_id == 0)
+// 				printf("prev depth is %f\n", depths[coll_id2]);
+// 		}
+// 		else
+// 		{
+// 			collected_prev_depths[block.thread_rank()] = 0;
+// 		}
+// 		// if (range.x + progress < range.y)
+// 		// {
+// 		// 	collected_prev_depths[block.thread_rank()] = 0;
+// 		// }
+		
+// 		block.sync();
+
+// 		// if(pix_id == 0)
+// 		//     printf("continue3\n");
+
+// 		// Iterate over Gaussians
+// 		for (int j = 0; !done && j < min(BLOCK_SIZE, toDo); j++)
+// 		{
+// 			// Keep track of current Gaussian ID. Skip, if this one
+// 			// is behind the last contributor for this pixel.
+// 			contributor--;
+// 			if (pix_id == 0 )
+// 				printf("\n\n\n , j is %d",j);
+// 			if (contributor >= last_contributor)
+// 				continue;
+
+// 			// Compute blending values, as before.
+// 			const float2 xy = collected_xy[j];
+// 			const float2 d = { xy.x - pixf.x, xy.y - pixf.y };
+// 			const float4 con_o = collected_conic_opacity[j];
+// 			const float power = -0.5f * (con_o.x * d.x * d.x + con_o.z * d.y * d.y) - con_o.y * d.x * d.y;
+// 			if (power > 0.0f)
+// 				continue;
+
+// 			const float G = exp(power);
+// 			const float alpha = min(0.99f, con_o.w * G);  //2D alpha
+// 			if (alpha < 1.0f / 255.0f)
+// 				continue;
+
+// 			if(!get_final)
+// 			{
+// 				get_final = true;
+// 				float cur_depth = collected_depths[j];
+// 				for(int ch = 0; ch < C; ch++)
+// 				{
+// 					float exp_bs = exp(-medium_bs_pix[ch] * cur_depth);   //exp(-sigma^bs s_N)
+// 					dL_dcmed[ch] += dL_dpixel2[ch] * T * exp_bs;
+// 					T_N1_expbs_cmed[ch] = T * exp_bs * medium_rgb_pix[ch]; //T_(N+1)*exp(-sigma^bs s_N)C_med
+// 					dL_dsigma_bs[ch] += -(dL_dpixel2[ch] * T_N1_expbs_cmed[ch] * cur_depth) ; 
+// 				}
+// 				if(pix_id == 0)
+// 				{
+// 					printf("T is %f\n", T);
+// 					printf("curdepth is %f\n", cur_depth);
+// 					printf("medium_rgb_pix is %f %f %f\n", medium_rgb_pix[0], medium_rgb_pix[1], medium_rgb_pix[2]);
+// 					printf("medium_bs_pix is %f %f %f\n", medium_bs_pix[0], medium_bs_pix[1], medium_bs_pix[2]);
+// 					printf("dL_dpixel2 is %f %f %f\n", dL_dpixel2[0], dL_dpixel2[1], dL_dpixel2[2]);
+// 					printf("dL_dpixel1 is %f %f %f\n", dL_dpixel1[0], dL_dpixel1[1], dL_dpixel1[2]);
+// 					printf("dL_dcemd is %f %f %f\n", dL_dcmed[0], dL_dcmed[1], dL_dcmed[2]);
+// 				}
+					
+				
+// 			}
+
+// 			T = T / (1.f - alpha);   // T_iobj
+// 			const float T_alpha = alpha * T;  //T_i*alpha_i
+
+// 			// Propagate gradients to per-Gaussian colors and keep
+// 			// gradients w.r.t. alpha (blending factor for a Gaussian/pixel
+// 			// pair).
+// 			float dL_dalpha = 0.0f;
+// 			const int global_id = collected_id[j];
+
+
+// 			float cur_depth = collected_depths[j];
+// 			float prev_depth = collected_prev_depths[j];
+// 			float exp_obj[3] , exp_bs[3] , exp_prev_bs[3];  //exp(-sigma^attn s_i)
+//             exp_obj[0] = exp(-medium_attn_pix[0] * cur_depth);  //exp(-sigma^attn s_i)
+//             exp_obj[1] = exp(-medium_attn_pix[1] * cur_depth);
+//             exp_obj[2] = exp(-medium_attn_pix[2] * cur_depth);  
+
+// 			exp_bs[0] = exp(-medium_bs_pix[0] * cur_depth);  //exp(-sigma^attn s_i)
+//             exp_bs[1] = exp(-medium_bs_pix[1] * cur_depth);
+//             exp_bs[2] = exp(-medium_bs_pix[2] * cur_depth);  
+
+// 			exp_prev_bs[0] = exp(-medium_bs_pix[0] * prev_depth);  //exp(-sigma^attn s_i-1)
+// 			exp_prev_bs[1] = exp(-medium_bs_pix[1] * prev_depth);
+// 			exp_prev_bs[2] = exp(-medium_bs_pix[2] * prev_depth);
+
+
+// 			for (int ch = 0; ch < C; ch++)
+// 			{
+// 				const float c_obj = exp_obj[ch]*collected_colors[ch * BLOCK_SIZE + j]*colors_enhance_pix[ch];  //exp(-sigma^attn s_i)O_i phi
+// 				// Update last color (to be used in the next iteration)
+// 				const float c_bs = (exp_prev_bs[ch] - exp_bs[ch]) * medium_rgb_pix[ch];  //exp(-sigma^bs s_i)C_med
+// 				accum_rec[ch] = last_alpha * last_color_obj[ch] + (1.f - last_alpha) * accum_rec[ch];
+// 				accum_rec_med[ch] += last_T * last_c_bs[ch];  //T_N*exp(-sigma^bs s_N)C_med
+
+// 				last_color_obj[ch] = c_obj; 
+// 				last_c_bs[ch] = c_bs;
+
+			
+// 				dL_dalpha += T*(c_obj - accum_rec[ch]) * dL_dpixel1[ch];    //only part one dL/dC1
+// 				dL_dalpha += -(accum_rec_med[ch] + T_N1_expbs_cmed[ch])/(1-alpha) * dL_dpixel2[ch];
+// 				// Update the gradients w.r.t. color of the Gaussian. 
+// 				// Atomic, since this pixel is just one of potentially
+// 				// many that were affected by this Gaussian.
+
+// 				atomicAdd(&(dL_dcolors[global_id * C + ch]),  dL_dpixel1[ch]*T_alpha*exp_obj[ch]*colors_enhance_pix[ch]);   // O_i
+// 				dL_dphi[ch] += dL_dpixel1[ch]*T_alpha*exp_obj[ch]*collected_colors[ch * BLOCK_SIZE + j];  //phi_obj only one in this pixel
+// 				dL_dsigma_attn[ch] += -dL_dpixel1[ch]*T_alpha*c_obj*cur_depth;  //sigma_attn
+// 				dL_dcmed[ch] += dL_dpixel2[ch]*T*(exp_prev_bs[ch] - exp_bs[ch]);  //cmed
+// 				dL_dsigma_bs[ch] += dL_dpixel2[ch]*T*medium_rgb_pix[ch]*(exp_bs[ch]*cur_depth - exp_prev_bs[ch]*prev_depth);  //sigma_bs
+
+
+				
+// 			}
+// 			if(pix_id == 0)
+// 			{
+// 				printf("T is %f\n", T);
+// 				printf("alpha is %f\n", alpha);
+// 				printf("curdepth is %f\n", cur_depth);
+// 				printf("prevdepth is %f\n", prev_depth);
+// 				printf("dL_dcmed is %f %f %f\n", dL_dcmed[0], dL_dcmed[1], dL_dcmed[2]);
+// 			}
+// 			// Propagate gradients from inverse depth to alphaas and
+// 			// per Gaussian inverse depths
+// 			if (dL_dout_depthptr)
+// 			{
+// 				//const float invd = 1.f / collected_depths[j];
+// 				accum_depth_rec = last_alpha * last_depth + (1.f - last_alpha) * accum_depth_rec;
+// 				last_depth = cur_depth;
+// 				dL_dalpha += T*(cur_depth - accum_depth_rec) * dL_outdepth;
+// 				atomicAdd(&(dL_ddepthptr[global_id]), T_alpha * dL_outdepth);
+// 			}
+
+// 			//dL_dalpha *= T;   //dL/dalpha_1
+// 			// Update last alpha (to be used in the next iteration)
+// 			last_alpha = alpha;
+// 			last_T = T;
+
+			
+				
+
+
+
+// 			// Account for fact that alpha also influences how much of
+// 			// the background color is added if nothing left to blend
+// 			// float bg_dot_dpixel = 0;
+// 			// for (int i = 0; i < C; i++)
+// 			// 	bg_dot_dpixel += bg_color[i] * dL_dpixel[i];
+// 			// dL_dalpha += (-T_final / (1.f - alpha)) * bg_dot_dpixel;
+
+
+
+
+// 			// Helpful reusable temporary variables
+// 			const float dL_dG = con_o.w * dL_dalpha;
+// 			const float gdx = G * d.x;
+// 			const float gdy = G * d.y;
+// 			const float dG_ddelx = -gdx * con_o.x - gdy * con_o.y;
+// 			const float dG_ddely = -gdy * con_o.z - gdx * con_o.y;
+
+// 			// Update gradients w.r.t. 2D mean position of the Gaussian
+// 			atomicAdd(&dL_dmean2D[global_id].x, dL_dG * dG_ddelx * ddelx_dx);
+// 			atomicAdd(&dL_dmean2D[global_id].y, dL_dG * dG_ddely * ddely_dy);
+
+// 			// Update gradients w.r.t. 2D covariance (2x2 matrix, symmetric)
+// 			atomicAdd(&dL_dconic2D[global_id].x, -0.5f * gdx * d.x * dL_dG);
+// 			atomicAdd(&dL_dconic2D[global_id].y, -0.5f * gdx * d.y * dL_dG);
+// 			atomicAdd(&dL_dconic2D[global_id].w, -0.5f * gdy * d.y * dL_dG);
+
+// 			// Update gradients w.r.t. opacity of the Gaussian
+// 			atomicAdd(&(dL_dopacity[global_id]), G * dL_dalpha);
+// 		}
+// 	}
+
+// 	if(inside)
+// 	{
+// 		for(int ch = 0 ; ch < C ; ch ++)
+// 		{
+// 			dL_dmedium_rgb[pix_id * C + ch] = dL_dcmed[ch];
+// 			dL_dmedium_bs[pix_id * C + ch] = dL_dsigma_bs[ch];
+// 			dL_dmedium_attn[pix_id * C + ch] = dL_dsigma_attn[ch];
+// 			dL_dcolors_enhance[pix_id * C + ch] = dL_dphi[ch];
+// 		}
+// 	}
+
+// }
+
+
 // Backward version of the rendering procedure.
 template <uint32_t C>
 __global__ void __launch_bounds__(BLOCK_X * BLOCK_Y)
@@ -511,18 +890,20 @@ renderCUDA(
 	__shared__ float4 collected_conic_opacity[BLOCK_SIZE];
 	__shared__ float collected_colors[C * BLOCK_SIZE];   //O_i
 	__shared__ float collected_depths[BLOCK_SIZE];
-	__shared__ float collected_prev_depths[BLOCK_SIZE];
 
 
 	// In the forward, we stored the final value for T, the
 	// product of all (1 - alpha) factors. 
 	const float T_final = inside ? final_Ts[pix_id] : 0;
 	float T = T_final;
+	float latter_T = T_final;  //T_i+1
 
 	// We start from the back. The ID of the last contributing
 	// Gaussian is known from each pixel from the forward.
 	uint32_t contributor = toDo;
 	const int last_contributor = inside ? n_contrib[pix_id] : 0;
+	// if(pix_id == 0)
+	// 	printf("last_contributor is %d\n", last_contributor);
 
 	float accum_rec[C] = { 0 };
 
@@ -555,9 +936,6 @@ renderCUDA(
 		
 	}
 
-	// if(block.thread_rank() == 0)
-	// 	printf("block id x is %d, and block id y is %d , and continue1\n" , block.group_index().x, block.group_index().y);
-
 
 
 	float medium_rgb_pix[3] = {0}; // cmed
@@ -565,35 +943,22 @@ renderCUDA(
     float medium_attn_pix[3] = {0};  //sigma_attn
 	float colors_enhance_pix[3] = {0};  //phi
     //float max_medium_attn_pix;
-	float prev_depth;
+	float latter_depth = 100.;
 
 	if (inside) {
         medium_rgb_pix[0] = medium_rgb[pix_id].x; medium_rgb_pix[1] = medium_rgb[pix_id].y; medium_rgb_pix[2] = medium_rgb[pix_id].z;
         medium_bs_pix[0] = medium_bs[pix_id].x; medium_bs_pix[1] = medium_bs[pix_id].y; medium_bs_pix[2] = medium_bs[pix_id].z;
         medium_attn_pix[0] = medium_attn[pix_id].x; medium_attn_pix[1] = medium_attn[pix_id].y; medium_attn_pix[2] = medium_attn[pix_id].z;
 		colors_enhance_pix[0] = colors_enhance[pix_id].x; colors_enhance_pix[1] = colors_enhance[pix_id].y; colors_enhance_pix[2] = colors_enhance[pix_id].z;  
-        prev_depth = 0.f;
         // get the biggest one of medium_attn_pix xyz
         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
     }
 
-	// for (int i = 0; i < C; i++)
-	// {
-	// 	dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
-	// }
-
-	// if(block.thread_rank() == 0)
-	// 	printf("block id x is %d, and block id y is %d , and continue2\n" , block.group_index().x, block.group_index().y);
-	//for (int i = 0; i < C; i++)
-	//{
-	//	dL_dcmed[i] += dL_dpixel2[i]*T*exp(-medium_attn[pix_id].x*depths[pix_id]);
-	//}
 
 	float last_alpha = 0;
-	float last_T = 0;
 	float last_color_obj[C] = { 0 };    //def : exp(-sigma^attn s_i)O_i phi
 	float last_depth = 0.;
-	float last_c_bs[3] = {0};
+	//float last_c_bs[3] = {0};
 
 
 	// Gradient of pixel coordinate w.r.t. normalized 
@@ -601,11 +966,15 @@ renderCUDA(
 	const float ddelx_dx = 0.5 * W;
 	const float ddely_dy = 0.5 * H;
 
-	bool get_final = false;
-	float T_N1_expbs_cmed[3] = {0};
+	//bool get_final = false;
+	//float T_N1_expbs_cmed[3] = {0};
 	//assert(false);
 
 	// Traverse all Gaussians
+	// if(pix_id == 0)
+	// {
+	// 	printf("range is %d %d\n", range.x, range.y);
+	// }
 	for (int i = 0; i < rounds; i++, toDo -= BLOCK_SIZE)
 	{
 		// Load auxiliary data into shared memory, start in the BACK
@@ -625,32 +994,14 @@ renderCUDA(
 			collected_depths[block.thread_rank()] = depths[coll_id];
 		}
 		block.sync();
-		if (range.x + progress < range.y - 1)
-		{
-			//assert(range.y - progress - 2 >= range.x);
-			const int coll_id = point_list[range.y - progress - 2];
-			collected_prev_depths[block.thread_rank()] = depths[coll_id];
-		}
-		else
-		{
-			collected_prev_depths[block.thread_rank()] = 0;
-		}
-		// if (range.x + progress < range.y)
-		// {
-		// 	collected_prev_depths[block.thread_rank()] = 0;
-		// }
-		
-		block.sync();
 
-		// if(pix_id == 0)
-		//     printf("continue3\n");
-
-		// Iterate over Gaussians
 		for (int j = 0; !done && j < min(BLOCK_SIZE, toDo); j++)
 		{
 			// Keep track of current Gaussian ID. Skip, if this one
 			// is behind the last contributor for this pixel.
 			contributor--;
+			if (pix_id == 0 )
+				printf("\n\n\n , j is %d",j);
 			if (contributor >= last_contributor)
 				continue;
 
@@ -667,21 +1018,6 @@ renderCUDA(
 			if (alpha < 1.0f / 255.0f)
 				continue;
 
-			if(!get_final)
-			{
-				get_final = true;
-				float cur_depth = collected_depths[j];
-				for(int ch = 0; ch < C; ch++)
-				{
-					float exp_bs = exp(-medium_bs_pix[ch] * cur_depth);
-					dL_dcmed[ch] += dL_dpixel2[ch] * T * exp_bs;
-					T_N1_expbs_cmed[ch] = T * exp_bs * medium_rgb_pix[ch]; //T_N*exp(-sigma^bs s_N)C_med
-					dL_dsigma_bs[ch] += -dL_dpixel2[ch] * T_N1_expbs_cmed[ch] * cur_depth ; 
-				}
-					
-				
-			}
-
 			T = T / (1.f - alpha);   // T_iobj
 			const float T_alpha = alpha * T;  //T_i*alpha_i
 
@@ -693,8 +1029,8 @@ renderCUDA(
 
 
 			float cur_depth = collected_depths[j];
-			float prev_depth = collected_prev_depths[j];
-			float exp_obj[3] , exp_bs[3] , exp_prev_bs[3];  //exp(-sigma^attn s_i)
+
+			float exp_obj[3] , exp_bs[3] , exp_latter_bs[3];  //exp(-sigma^attn s_i)
             exp_obj[0] = exp(-medium_attn_pix[0] * cur_depth);  //exp(-sigma^attn s_i)
             exp_obj[1] = exp(-medium_attn_pix[1] * cur_depth);
             exp_obj[2] = exp(-medium_attn_pix[2] * cur_depth);  
@@ -703,38 +1039,43 @@ renderCUDA(
             exp_bs[1] = exp(-medium_bs_pix[1] * cur_depth);
             exp_bs[2] = exp(-medium_bs_pix[2] * cur_depth);  
 
-			exp_prev_bs[0] = exp(-medium_bs_pix[0] * prev_depth);  //exp(-sigma^attn s_i-1)
-			exp_prev_bs[1] = exp(-medium_bs_pix[1] * prev_depth);
-			exp_prev_bs[2] = exp(-medium_bs_pix[2] * prev_depth);
+			exp_latter_bs[0] = exp(-medium_bs_pix[0] * latter_depth);  //exp(-sigma^attn s_i-1)
+			exp_latter_bs[1] = exp(-medium_bs_pix[1] * latter_depth);
+			exp_latter_bs[2] = exp(-medium_bs_pix[2] * latter_depth);
 
 
 			for (int ch = 0; ch < C; ch++)
 			{
 				const float c_obj = exp_obj[ch]*collected_colors[ch * BLOCK_SIZE + j]*colors_enhance_pix[ch];  //exp(-sigma^attn s_i)O_i phi
 				// Update last color (to be used in the next iteration)
-				const float c_bs = (exp_prev_bs[ch] - exp_bs[ch]) * medium_rgb_pix[ch];  //exp(-sigma^bs s_i)C_med
+				const float c_bs_i1 = (exp_bs[ch] - exp_latter_bs[ch]) * medium_rgb_pix[ch];  //exp(-sigma^bs s_i)C_med
 				accum_rec[ch] = last_alpha * last_color_obj[ch] + (1.f - last_alpha) * accum_rec[ch];
-				accum_rec_med[ch] += last_T * last_c_bs[ch];  //T_N*exp(-sigma^bs s_N)C_med
+				accum_rec_med[ch] += latter_T * c_bs_i1;  //T_N*exp(-sigma^bs s_N)C_med
 
 				last_color_obj[ch] = c_obj; 
-				last_c_bs[ch] = c_bs;
+				//last_c_bs[ch] = c_bs;
 
 			
 				dL_dalpha += T*(c_obj - accum_rec[ch]) * dL_dpixel1[ch];    //only part one dL/dC1
-				dL_dalpha += -(accum_rec_med[ch] + T_N1_expbs_cmed[ch])/(1-alpha) * dL_dpixel2[ch];
-				// Update the gradients w.r.t. color of the Gaussian. 
-				// Atomic, since this pixel is just one of potentially
-				// many that were affected by this Gaussian.
+				dL_dalpha += -(accum_rec_med[ch])/(1-alpha) * dL_dpixel2[ch];
 
 				atomicAdd(&(dL_dcolors[global_id * C + ch]),  dL_dpixel1[ch]*T_alpha*exp_obj[ch]*colors_enhance_pix[ch]);   // O_i
 				dL_dphi[ch] += dL_dpixel1[ch]*T_alpha*exp_obj[ch]*collected_colors[ch * BLOCK_SIZE + j];  //phi_obj only one in this pixel
 				dL_dsigma_attn[ch] += -dL_dpixel1[ch]*T_alpha*c_obj*cur_depth;  //sigma_attn
-				dL_dcmed[ch] += dL_dpixel2[ch]*T*(exp_prev_bs[ch] - exp_bs[ch]);  //cmed
-				dL_dsigma_bs[ch] += dL_dpixel2[ch]*T*medium_rgb_pix[ch]*(exp_bs[ch]*cur_depth - exp_prev_bs[ch]*prev_depth);  //sigma_bs
+				dL_dcmed[ch] += dL_dpixel2[ch]*latter_T*(exp_bs[ch] - exp_latter_bs[ch]);  //cmed
+				dL_dsigma_bs[ch] += dL_dpixel2[ch]*latter_T*medium_rgb_pix[ch]*(exp_latter_bs[ch]*latter_depth - exp_bs[ch]*cur_depth);  //sigma_bs
 
 
 				
 			}
+			// if(pix_id == 0)
+			// {
+			// 	printf("T is %f\n", T);
+			// 	printf("alpha is %f\n", alpha);
+			// 	printf("curdepth is %f\n", cur_depth);
+			// 	//printf("prevdepth is %f\n", prev_depth);
+			// 	printf("dL_dcmed is %f %f %f\n", dL_dcmed[0], dL_dcmed[1], dL_dcmed[2]);
+			// }
 			// Propagate gradients from inverse depth to alphaas and
 			// per Gaussian inverse depths
 			if (dL_dout_depthptr)
@@ -749,7 +1090,8 @@ renderCUDA(
 			//dL_dalpha *= T;   //dL/dalpha_1
 			// Update last alpha (to be used in the next iteration)
 			last_alpha = alpha;
-			last_T = T;
+			latter_T = T;
+			latter_depth = cur_depth;
 
 			
 				
@@ -789,6 +1131,20 @@ renderCUDA(
 
 	if(inside)
 	{
+		float exp_bs[3];
+		exp_bs[0] = exp(-medium_bs_pix[0] * latter_depth);  //exp(-sigma^bs s_1)
+		exp_bs[1] = exp(-medium_bs_pix[1] * latter_depth);
+		exp_bs[2] = exp(-medium_bs_pix[2] * latter_depth);  
+		
+		assert(abs(latter_T - 1.0) < 1e-3);
+
+		for(int ch = 0 ; ch < C ; ch ++)
+		{
+			dL_dcmed[ch] += dL_dpixel2[ch] * (1-exp_bs[ch]);
+			dL_dsigma_bs[ch] += dL_dpixel2[ch] * medium_rgb_pix[ch] * exp_bs[ch] * latter_depth;
+		}
+
+
 		for(int ch = 0 ; ch < C ; ch ++)
 		{
 			dL_dmedium_rgb[pix_id * C + ch] = dL_dcmed[ch];

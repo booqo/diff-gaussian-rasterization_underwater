@@ -341,129 +341,129 @@ def loss_function(outputs):
     color_attn, color_clr, color_medium, radii, depths = outputs
     return (color_attn+color_medium).sum()
 
-# 检查 c_med 的梯度
-gradient_check(
-    variable_name='c_med',
-    variable=c_med,  # 要检查的变量
-    rasterizer=rasterizer,
-    loss_fn=loss_function,
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=None,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None,
-    medium_rgb=c_med,
-    medium_bs=sigma_bs,
-    medium_attn=sigma_atten,
-    colors_enhance=colors_enhance
-)
+# # 检查 c_med 的梯度
+# gradient_check(
+#     variable_name='c_med',
+#     variable=c_med,  # 要检查的变量
+#     rasterizer=rasterizer,
+#     loss_fn=loss_function,
+#     means3D=pts,
+#     means2D=screenspace_points,
+#     shs=shs,
+#     colors_precomp=None,
+#     opacities=opacities,
+#     scales=scales,
+#     rotations=rotations,
+#     cov3D_precomp=None,
+#     medium_rgb=c_med,
+#     medium_bs=sigma_bs,
+#     medium_attn=sigma_atten,
+#     colors_enhance=colors_enhance
+# )
 
 
-# 检查 sigma_bs 的梯度
-gradient_check(
-    variable_name='sigma_bs',
-    variable=sigma_bs,  # 要检查的变量
-    rasterizer=rasterizer,
-    loss_fn=loss_function,
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=None,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None,
-    medium_rgb=c_med,
-    medium_bs=sigma_bs,
-    medium_attn=sigma_atten,
-    colors_enhance=colors_enhance
-)
+# # 检查 sigma_bs 的梯度
+# gradient_check(
+#     variable_name='sigma_bs',
+#     variable=sigma_bs,  # 要检查的变量
+#     rasterizer=rasterizer,
+#     loss_fn=loss_function,
+#     means3D=pts,
+#     means2D=screenspace_points,
+#     shs=shs,
+#     colors_precomp=None,
+#     opacities=opacities,
+#     scales=scales,
+#     rotations=rotations,
+#     cov3D_precomp=None,
+#     medium_rgb=c_med,
+#     medium_bs=sigma_bs,
+#     medium_attn=sigma_atten,
+#     colors_enhance=colors_enhance
+# )
 
-# 检查 sigma_atten 的梯度
-gradient_check(
-    variable_name='sigma_atten',
-    variable=sigma_atten,  # 要检查的变量
-    rasterizer=rasterizer,
-    loss_fn=loss_function,
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=None,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None,
-    medium_rgb=c_med,
-    medium_bs=sigma_bs,
-    medium_attn=sigma_atten,
-    colors_enhance=colors_enhance
-)
+# # 检查 sigma_atten 的梯度
+# gradient_check(
+#     variable_name='sigma_atten',
+#     variable=sigma_atten,  # 要检查的变量
+#     rasterizer=rasterizer,
+#     loss_fn=loss_function,
+#     means3D=pts,
+#     means2D=screenspace_points,
+#     shs=shs,
+#     colors_precomp=None,
+#     opacities=opacities,
+#     scales=scales,
+#     rotations=rotations,
+#     cov3D_precomp=None,
+#     medium_rgb=c_med,
+#     medium_bs=sigma_bs,
+#     medium_attn=sigma_atten,
+#     colors_enhance=colors_enhance
+# )
 
-# 检查 colors_enhance 的梯度
-gradient_check(
-    variable_name='colors_enhance',
-    variable=sigma_atten,  # 要检查的变量
-    rasterizer=rasterizer,
-    loss_fn=loss_function,
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=None,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None,
-    medium_rgb=c_med,
-    medium_bs=sigma_bs,
-    medium_attn=sigma_atten,
-    colors_enhance=colors_enhance
-)
-
-
-
-color_attn = color_attn.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
-color_clr = color_clr.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
-color_medium = color_medium.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
-depths = depths.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
+# # 检查 colors_enhance 的梯度
+# gradient_check(
+#     variable_name='colors_enhance',
+#     variable=sigma_atten,  # 要检查的变量
+#     rasterizer=rasterizer,
+#     loss_fn=loss_function,
+#     means3D=pts,
+#     means2D=screenspace_points,
+#     shs=shs,
+#     colors_precomp=None,
+#     opacities=opacities,
+#     scales=scales,
+#     rotations=rotations,
+#     cov3D_precomp=None,
+#     medium_rgb=c_med,
+#     medium_bs=sigma_bs,
+#     medium_attn=sigma_atten,
+#     colors_enhance=colors_enhance
+# )
 
 
 
-
-# rendered_image = color_medium.permute(1, 2, 0)
-# 将渲染图像从GPU移动到CPU，并分离梯度，转换为NumPy数组
-color_attn_np = color_attn.detach().cpu().numpy()
-color_clr_np = color_clr.detach().cpu().numpy()
-color_medium_np = color_medium.detach().cpu().numpy()
-depths_np = depths.detach().cpu().numpy()
-rendered_image_np = color_attn_np + color_medium_np
+# color_attn = color_attn.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
+# color_clr = color_clr.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
+# color_medium = color_medium.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
+# depths = depths.permute(1, 2, 0)  # 从[3, H, W]转换为[H, W, 3]
 
 
 
-# 使用Matplotlib显示渲染结果
-fig, axes = plt.subplots(1, 5, figsize=(15, 5))  # 创建 1 行 3 列的子图
-axes[0].imshow(rendered_image_np)
-axes[0].axis('off')  # 关闭第一张图的坐标轴
-axes[0].set_title("Rendered Image")
 
-axes[1].imshow(color_clr_np)
-axes[1].axis('off')
-axes[1].set_title("Color Clr")
+# # rendered_image = color_medium.permute(1, 2, 0)
+# # 将渲染图像从GPU移动到CPU，并分离梯度，转换为NumPy数组
+# color_attn_np = color_attn.detach().cpu().numpy()
+# color_clr_np = color_clr.detach().cpu().numpy()
+# color_medium_np = color_medium.detach().cpu().numpy()
+# depths_np = depths.detach().cpu().numpy()
+# rendered_image_np = color_attn_np + color_medium_np
 
-axes[2].imshow(color_medium_np)
-axes[2].axis('off')
-axes[2].set_title("Color Medium")
 
-axes[3].imshow(color_attn_np)
-axes[3].axis('off')
-axes[3].set_title("Color Attn")
 
-axes[4].imshow(depths_np)
-axes[4].axis('off')
-axes[4].set_title("Depth Map")
+# # 使用Matplotlib显示渲染结果
+# fig, axes = plt.subplots(1, 5, figsize=(15, 5))  # 创建 1 行 3 列的子图
+# axes[0].imshow(rendered_image_np)
+# axes[0].axis('off')  # 关闭第一张图的坐标轴
+# axes[0].set_title("Rendered Image")
 
-# fig.suptitle('Visual Representation of Different Image Components', fontsize=16)
+# axes[1].imshow(color_clr_np)
+# axes[1].axis('off')
+# axes[1].set_title("Color Clr")
 
-plt.show()
+# axes[2].imshow(color_medium_np)
+# axes[2].axis('off')
+# axes[2].set_title("Color Medium")
+
+# axes[3].imshow(color_attn_np)
+# axes[3].axis('off')
+# axes[3].set_title("Color Attn")
+
+# axes[4].imshow(depths_np)
+# axes[4].axis('off')
+# axes[4].set_title("Depth Map")
+
+# # fig.suptitle('Visual Representation of Different Image Components', fontsize=16)
+
+# plt.show()

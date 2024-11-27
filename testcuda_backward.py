@@ -24,7 +24,7 @@ def gradient_check(variable_name, variable, rasterizer, loss_fn, **kwargs):
     epsilon = 1e-4
     # 确保变量需要计算梯度
     variable.requires_grad = True
-
+    print("gradient check for ", variable_name)
     # 计算自动求导的梯度
     rasterizer.zero_grad()  # 清零之前的梯度
     output = rasterizer(
@@ -59,48 +59,50 @@ def gradient_check(variable_name, variable, rasterizer, loss_fn, **kwargs):
         # # 创建变量的副本以避免原地操作
         with torch.no_grad():
             variable_flat[idx] = original_value + epsilon
-        output_plus = rasterizer(
-            means3D=kwargs.get('means3D'),
-            means2D=kwargs.get('means2D'),
-            shs=kwargs.get('shs'),
-            colors_precomp=kwargs.get('colors_precomp'),
-            opacities=kwargs.get('opacities'),
-            scales=kwargs.get('scales'),
-            rotations=kwargs.get('rotations'),
-            cov3D_precomp=kwargs.get('cov3D_precomp'),
-            medium_rgb=kwargs.get('medium_rgb'),
-            medium_bs=kwargs.get('medium_bs'),
-            medium_attn=kwargs.get('medium_attn'),
-            colors_enhance=kwargs.get('colors_enhance')
-        )
-        loss_plus = loss_fn(output_plus).item()
-
-        with torch.no_grad():
+            output_plus = rasterizer(
+                means3D=kwargs.get('means3D'),
+                means2D=kwargs.get('means2D'),
+                shs=kwargs.get('shs'),
+                colors_precomp=kwargs.get('colors_precomp'),
+                opacities=kwargs.get('opacities'),
+                scales=kwargs.get('scales'),
+                rotations=kwargs.get('rotations'),
+                cov3D_precomp=kwargs.get('cov3D_precomp'),
+                medium_rgb=kwargs.get('medium_rgb'),
+                medium_bs=kwargs.get('medium_bs'),
+                medium_attn=kwargs.get('medium_attn'),
+                colors_enhance=kwargs.get('colors_enhance')
+            )
+            loss_plus = loss_fn(output_plus).item()
+            #print(original_value)
             variable_flat[idx] = original_value - epsilon
-        output_minus = rasterizer(
-            means3D=kwargs.get('means3D'),
-            means2D=kwargs.get('means2D'),
-            shs=kwargs.get('shs'),
-            colors_precomp=kwargs.get('colors_precomp'),
-            opacities=kwargs.get('opacities'),
-            scales=kwargs.get('scales'),
-            rotations=kwargs.get('rotations'),
-            cov3D_precomp=kwargs.get('cov3D_precomp'),
-            medium_rgb=kwargs.get('medium_rgb'),
-            medium_bs=kwargs.get('medium_bs'),
-            medium_attn=kwargs.get('medium_attn'),
-            colors_enhance=kwargs.get('colors_enhance')
-        )
-        loss_minus = loss_fn(output_minus).item()
 
-        # 恢复原始值
-        with torch.no_grad():
+            output_minus = rasterizer(
+                means3D=kwargs.get('means3D'),
+                means2D=kwargs.get('means2D'),
+                shs=kwargs.get('shs'),
+                colors_precomp=kwargs.get('colors_precomp'),
+                opacities=kwargs.get('opacities'),
+                scales=kwargs.get('scales'),
+                rotations=kwargs.get('rotations'),
+                cov3D_precomp=kwargs.get('cov3D_precomp'),
+                medium_rgb=kwargs.get('medium_rgb'),
+                medium_bs=kwargs.get('medium_bs'),
+                medium_attn=kwargs.get('medium_attn'),
+                colors_enhance=kwargs.get('colors_enhance')
+            )
+            loss_minus = loss_fn(output_minus).item()
+
             variable_flat[idx] = original_value
 
         # 计算数值梯度
         numerical_grad_flat[idx] = (loss_plus - loss_minus) / (2 * epsilon)
+        # print("numerical_grad\n", numerical_grad_flat[idx])
+        # print("autograd_grad\n", autograd_grad_flat[idx])
 
     # 重新形状还原
+    
+    
     numerical_grad = numerical_grad_flat.view_as(variable)
     autograd_grad = autograd_grad_flat.view_as(variable)
     print("numerical_grad\n", numerical_grad.detach().cpu().numpy())
@@ -131,9 +133,9 @@ def loss_function2(outputs):
 
 # 定义高斯体的中心点和特征
 pts = np.array([
-    [0, 0, 10],    # 位于正Z轴方向
-    [-0.2, -0, 10],
-    [-0, 0.2, 10]
+    [0, 0, 10.0],    # 位于正Z轴方向
+    [-0.2, -0, 10.0],
+    [-0, 0.2, 10.0]
 ], dtype=np.float32)
 n = len(pts)  # 高斯体数量
 
@@ -202,14 +204,14 @@ cam_pos = torch.tensor(cam_pos, dtype=torch.float32, device="cuda")
 
 # 定义介质参数，形状应该是 H, W, 3
 c_med = torch.zeros((H, W, 3), dtype=torch.float32, device="cuda")
-c_med[:, :, 0] = 0 # 红色通道
-c_med[:, :, 1] = 0  # 绿色通道
-c_med[:, :, 2] = 130  # 蓝色通道
-sigma_bs = torch.full((H, W, 3), 1, dtype=torch.float32, device="cuda")
-sigma_atten = torch.full((H, W, 3), 1, dtype=torch.float32, device="cuda")
+c_med[:, :, 0] = 1.0 # 红色通道
+c_med[:, :, 1] = 1.0  # 绿色通道
+c_med[:, :, 2] = 1.0  # 蓝色通道
+sigma_bs = torch.full((H, W, 3), 0.3 , dtype=torch.float32, device="cuda")
+sigma_atten = torch.full((H, W, 3), 0.3 , dtype=torch.float32, device="cuda")
 
 # 定义增强颜色参数，形状应该是 H, W, 3
-colors_enhance = torch.full((H, W, 3), 2, dtype=torch.float32, device="cuda")
+colors_enhance = torch.full((H, W, 3), 2.0 , dtype=torch.float32, device="cuda")
 
 # 定义背景颜色为黑色
 bg = torch.tensor([0, 0, 0], dtype=torch.float32, device="cuda")
@@ -239,8 +241,6 @@ raster_settings = GaussianRasterizationSettings(
 
 # 初始化高斯光栅化器
 rasterizer = GaussianRasterizer(raster_settings=raster_settings)
-
-
 # 检查 c_med 的梯度
 gradient_check(
     variable_name='c_med',
@@ -263,65 +263,83 @@ gradient_check(
 
 
 # # 检查 sigma_bs 的梯度 目前有问题
-# gradient_check(
-#     variable_name='sigma_bs',
-#     variable=sigma_bs,  # 要检查的变量
-#     rasterizer=rasterizer,
-#     loss_fn=loss_function,
-#     means3D=pts,
-#     means2D=screenspace_points,
-#     shs=shs,
-#     colors_precomp=None,
-#     opacities=opacities,
-#     scales=scales,
-#     rotations=rotations,
-#     cov3D_precomp=None,
-#     medium_rgb=c_med,
-#     medium_bs=sigma_bs,
-#     medium_attn=sigma_atten,
-#     colors_enhance=colors_enhance
-# )
+gradient_check(
+    variable_name='sigma_bs',
+    variable=sigma_bs,  # 要检查的变量
+    rasterizer=rasterizer,
+    loss_fn=loss_function,
+    means3D=pts,
+    means2D=screenspace_points,
+    shs=shs,
+    colors_precomp=None,
+    opacities=opacities,
+    scales=scales,
+    rotations=rotations,
+    cov3D_precomp=None,
+    medium_rgb=c_med,
+    medium_bs=sigma_bs,
+    medium_attn=sigma_atten,
+    colors_enhance=colors_enhance
+)
 #
 # # 检查 sigma_atten 的梯度
-# gradient_check(
-#     variable_name='sigma_atten',
-#     variable=sigma_atten,  # 要检查的变量
-#     rasterizer=rasterizer,
-#     loss_fn=loss_function,
-#     means3D=pts,
-#     means2D=screenspace_points,
-#     shs=shs,
-#     colors_precomp=None,
-#     opacities=opacities,
-#     scales=scales,
-#     rotations=rotations,
-#     cov3D_precomp=None,
-#     medium_rgb=c_med,
-#     medium_bs=sigma_bs,
-#     medium_attn=sigma_atten,
-#     colors_enhance=colors_enhance
-# )
+gradient_check(
+    variable_name='sigma_atten',
+    variable=sigma_atten,  # 要检查的变量
+    rasterizer=rasterizer,
+    loss_fn=loss_function,
+    means3D=pts,
+    means2D=screenspace_points,
+    shs=shs,
+    colors_precomp=None,
+    opacities=opacities,
+    scales=scales,
+    rotations=rotations,
+    cov3D_precomp=None,
+    medium_rgb=c_med,
+    medium_bs=sigma_bs,
+    medium_attn=sigma_atten,
+    colors_enhance=colors_enhance
+)
 #
 # # 检查 colors_enhance 的梯度
-# gradient_check(
-#     variable_name='colors_enhance',
-#     variable=colors_enhance,  # 要检查的变量
-#     rasterizer=rasterizer,
-#     loss_fn=loss_function,
-#     means3D=pts,
-#     means2D=screenspace_points,
-#     shs=shs,
-#     colors_precomp=None,
-#     opacities=opacities,
-#     scales=scales,
-#     rotations=rotations,
-#     cov3D_precomp=None,
-#     medium_rgb=c_med,
-#     medium_bs=sigma_bs,
-#     medium_attn=sigma_atten,
-#     colors_enhance=colors_enhance
-# )
+gradient_check(
+    variable_name='colors_enhance',
+    variable=colors_enhance,  # 要检查的变量
+    rasterizer=rasterizer,
+    loss_fn=loss_function,
+    means3D=pts,
+    means2D=screenspace_points,
+    shs=shs,
+    colors_precomp=None,
+    opacities=opacities,
+    scales=scales,
+    rotations=rotations,
+    cov3D_precomp=None,
+    medium_rgb=c_med,
+    medium_bs=sigma_bs,
+    medium_attn=sigma_atten,
+    colors_enhance=colors_enhance
+)
 
+gradient_check(
+    variable_name='colors_enhance',
+    variable=colors_enhance,  # 要检查的变量
+    rasterizer=rasterizer,
+    loss_fn=loss_function,
+    means3D=pts,
+    means2D=screenspace_points,
+    shs=shs,
+    colors_precomp=None,
+    opacities=opacities,
+    scales=scales,
+    rotations=rotations,
+    cov3D_precomp=None,
+    medium_rgb=c_med,
+    medium_bs=sigma_bs,
+    medium_attn=sigma_atten,
+    colors_enhance=colors_enhance
+)
 # """-----------------------------------------------------------------"""
 # raster_settings = GaussianRasterizationSettings2(
 #     image_height=H,                       # 输出图像高度
