@@ -68,7 +68,15 @@ RasterizeGaussiansCUDA_underwater(
   const int H = image_height;
   const int W = image_width;
 
-  printf("P: %d, H: %d, W: %d\n", P, H, W);
+//   printf("P: %d, H: %d, W: %d\n", P, H, W);
+//   for (size_t i = 0; i < 3; ++i) {
+//         printf("medium rgb %d",medium_rgb.size(i));
+// 		printf("medium_bs %d" , medium_bs.size(i));
+// 		printf("medium_attn %d", medium_attn.size(i));
+// 	}	
+
+// 	printf("Tensor total elements: %ld\n", medium_rgb.numel());
+	
   
 
   auto int_opts = means3D.options().dtype(torch::kInt32);
@@ -122,10 +130,10 @@ RasterizeGaussiansCUDA_underwater(
 		scale_modifier,
 		rotations.contiguous().data_ptr<float>(),
 		cov3D_precomp.contiguous().data_ptr<float>(),
-		(float3 *)medium_rgb.contiguous().data_ptr<float>(),   // H W 3
-		(float3 *)medium_bs.contiguous().data_ptr<float>(),   // H W 3
-		(float3 *)medium_attn.contiguous().data_ptr<float>(),  // H W 3
-		(float3 *)colors_enhance.contiguous().data_ptr<float>(),  // H W 3
+		medium_rgb.contiguous().data_ptr<float>(),   // H W 3
+		medium_bs.contiguous().data_ptr<float>(),   // H W 3
+		medium_attn.contiguous().data_ptr<float>(),  // H W 3
+		colors_enhance.contiguous().data_ptr<float>(),  // H W 3
 		out_image.contiguous().data_ptr<float>(),  // 3 H W
 		out_color.contiguous().data_ptr<float>(),  // 3 H W
 		out_med.contiguous().data_ptr<float>(),  // 3 H W

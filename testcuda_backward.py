@@ -7,7 +7,98 @@ import torch
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from testcuda_forward import getWorld2View2,getProjectionMatrix
+#from testcuda_forward import getWorld2View2,getProjectionMatrix
+
+def getWorld2View(R, t, translate=np.array([0.0, 0.0, 0.0]), scale=1.0):
+    """
+    生成从世界坐标系到视图坐标系的转换矩阵。
+
+    参数:
+        R (np.ndarray): 旋转矩阵（3x3）。
+        t (np.ndarray): 平移向量（3,）。
+        translate (np.ndarray): 额外的平移向量，用于调整相机位置（默认 [0, 0, 0]）。
+        scale (float): 缩放因子（默认 1.0）。
+
+    返回:
+        np.ndarray: 转换矩阵（4x4）。
+    """
+    # 初始化4x4矩阵
+    Rt = np.zeros((4, 4))
+    Rt[:3, :3] = R.transpose()  # 转置旋转矩阵
+    Rt[:3, 3] = t               # 设置平移向量
+    Rt[3, 3] = 1.0              # 设置齐次坐标
+
+    # 计算相机到世界的逆矩阵
+    C2W = np.linalg.inv(Rt)
+    cam_center = C2W[:3, 3]     # 获取相机中心
+    cam_center = (cam_center + translate) * scale  # 应用额外的平移和缩放
+    C2W[:3, 3] = cam_center     # 更新相机中心
+    Rt = np.linalg.inv(C2W)      # 再次求逆，得到世界到相机的矩阵
+    return np.float32(Rt)        # 返回32位浮点数类型的矩阵
+
+def getWorld2View2(R, t, translate=np.array([0.0, 0.0, 0.0]), scale=1.0):
+    """
+    生成从世界坐标系到视图坐标系的转换矩阵。
+    """
+    Rt = np.eye(4, dtype=np.float32)
+    Rt[:3, :3] = R.T
+    Rt[:3, 3] = -np.dot(R.T, t)
+    return Rt
+
+# 定义投影矩阵生成函数
+def getProjectionMatrix2(znear, zfar, fovX, fovY):
+    """
+    生成投影矩阵。
+
+    参数:
+        znear (float): 近裁剪面距离。
+        zfar (float): 远裁剪面距离。
+        fovX (float): 水平视场角（度）。
+        fovY (float): 垂直视场角（度）。
+
+    返回:
+        np.ndarray: 投影矩阵（4x4）。
+    """
+    # 将视场角从度转换为弧度，并计算半角的正切值
+    tanHalfFovY = math.tan(math.radians(fovY) / 2)
+    tanHalfFovX = math.tan(math.radians(fovX) / 2)
+
+    # 计算裁剪平面的边界
+    top = tanHalfFovY * znear
+    bottom = -top
+    right = tanHalfFovX * znear
+    left = -right
+
+    # 初始化投影矩阵
+    P = np.zeros((4, 4))
+
+    # 确定z轴的符号（通常为1）
+    z_sign = 1.0
+
+    # 填充投影矩阵的各个元素
+    P[0, 0] = 2.0 * znear / (right - left)
+    P[1, 1] = 2.0 * znear / (top - bottom)
+    P[0, 2] = (right + left) / (right - left)
+    P[1, 2] = (top + bottom) / (top - bottom)
+    P[2, 2] = z_sign * zfar / (zfar - znear)
+    P[2, 3] = -(zfar * znear) / (zfar - znear)
+    P[3, 2] = z_sign
+
+    return P
+
+def getProjectionMatrix(znear, zfar, fovX, fovY):
+    """
+    生成标准的透视投影矩阵。
+    """
+    aspect = math.tan(math.radians(fovX) / 2) / math.tan(math.radians(fovY) / 2)
+    f = 1.0 / math.tan(math.radians(fovY) / 2)
+    P = np.zeros((4, 4), dtype=np.float32)
+    P[0, 0] = f / aspect
+    P[1, 1] = f
+    P[2, 2] = (zfar + znear) / (znear - zfar)
+    P[2, 3] = (2 * zfar * znear) / (znear - zfar)
+    P[3, 2] = -1.0
+    return P
 
 
 def gradient_check(variable_name, variable, rasterizer, loss_fn, **kwargs):
@@ -137,13 +228,13 @@ def gradient_check_pix(variable_name, variable, rasterizer, loss_fn, **kwargs):
         kwargs: 传递给rasterizer的其他参数。
     """
     idx = 0
-    epsilon = 1e-4
+    epsilon = 1e-3
     # 确保变量需要计算梯度
     variable.requires_grad = True
     print("gradient check for ", variable_name)
     # 计算自动求导的梯度
     rasterizer.zero_grad()  # 清零之前的梯度
-    output = rasterizer(
+    render_img, _,render_cem,_,_ = rasterizer(
         means3D=kwargs.get('means3D'),
         means2D=kwargs.get('means2D'),
         shs=kwargs.get('shs'),
@@ -157,16 +248,19 @@ def gradient_check_pix(variable_name, variable, rasterizer, loss_fn, **kwargs):
         medium_attn=kwargs.get('medium_attn'),
         colors_enhance=kwargs.get('colors_enhance')
     )
-    loss = loss_fn(output)
+    loss = (render_cem).sum()
+    print(render_cem)
     loss.backward()
     autograd_grad = variable.grad.clone()
 
     # 数值梯度初始化
     numerical_grad = torch.zeros_like(variable)
+    numerical_grad2 = torch.zeros_like(variable)
 
     # 使用 flatten 方法进行一维化遍历
     variable_flat = variable.view(-1)                       # 展平的变量
     numerical_grad_flat = numerical_grad.view(-1) # 展平的数值梯度量
+    numerical_grad2_flat = numerical_grad2.view(-1) # 展平的数值梯度量
     autograd_grad_flat = autograd_grad.view(-1)       #展平的自动梯度
 
     
@@ -190,7 +284,9 @@ def gradient_check_pix(variable_name, variable, rasterizer, loss_fn, **kwargs):
             colors_enhance=kwargs.get('colors_enhance')
         )
         #loss_plus = loss_fn(output_plus).item()
-        loss_single_max = (render_img_max + render_cem_max).sum()
+        loss_single_max = (render_cem_max).sum()
+        loss_first_max = render_cem_max[0,0,0]
+        print(render_cem_max , loss_single_max , loss_first_max)
         #print(original_value)
         variable_flat[idx] = original_value - epsilon
 
@@ -208,14 +304,16 @@ def gradient_check_pix(variable_name, variable, rasterizer, loss_fn, **kwargs):
             medium_attn=kwargs.get('medium_attn'),
             colors_enhance=kwargs.get('colors_enhance')
         )
-        loss_single_min = (render_img_min + render_cem_min).sum()
-
+        loss_single_min = (render_cem_min ).sum()
+        loss_first_min = render_cem_min[0,0,0]
+        print(render_cem_min , loss_single_min , loss_first_min)
         variable_flat[idx] = original_value
 
 #     # 计算数值梯度
         # print("loss plus is " , loss_plus)
         # print("loss minus is " , loss_minus)
         numerical_grad_flat[idx] = (loss_single_max - loss_single_min) / (2 * epsilon)
+        numerical_grad2_flat[idx] = (loss_first_max - loss_first_min) / (2 * epsilon)
     # print("numerical_grad\n", numerical_grad_flat[idx])
     # print("autograd_grad\n", autograd_grad_flat[idx])
 
@@ -225,7 +323,9 @@ def gradient_check_pix(variable_name, variable, rasterizer, loss_fn, **kwargs):
     numerical_grad = numerical_grad_flat.view_as(variable)
     autograd_grad = autograd_grad_flat.view_as(variable)
     print("numerical_grad\n", numerical_grad.detach().cpu().numpy())
+    print("numerical_grad2\n", numerical_grad2.detach().cpu().numpy())
     print("autograd_grad\n", autograd_grad.detach().cpu().numpy())
+    
 
 
 

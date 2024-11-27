@@ -287,10 +287,15 @@ renderCUDA(
 	const float* __restrict__ bg_color,
 	const float* __restrict__ depths,
 	//float* __restrict__ invdepth,
-	const float3* __restrict__ medium_rgb, //介质颜色
-	const float3* __restrict__ medium_bs, //介质 \sigma bs
-	const float3* __restrict__ medium_attn,
-	const float3* __restrict__ colors_enhance,
+	// const float3* __restrict__ medium_rgb, //介质颜色
+	// const float3* __restrict__ medium_bs, //介质 \sigma bs
+	// const float3* __restrict__ medium_attn,
+	// const float3* __restrict__ colors_enhance,
+
+	const float* __restrict__ medium_rgb, //介质颜色
+	const float* __restrict__ medium_bs, //介质 \sigma bs
+	const float* __restrict__ medium_attn,
+	const float* __restrict__ colors_enhance,
 	float* __restrict__ out_img,
     float* __restrict__ out_clr,
     float* __restrict__ out_med,
@@ -362,18 +367,27 @@ renderCUDA(
 
 	float prev_depth = 0.f;
 
-	float3 medium_rgb_pix;
-    float3 medium_bs_pix;
-    float3 medium_attn_pix;
-	float3 colors_enhance_pix;
+	float3 medium_rgb_pix = {0.f, 0.f, 0.f}; ;
+    float3 medium_bs_pix = {0.f, 0.f, 0.f}; 
+    float3 medium_attn_pix = {0.f, 0.f, 0.f}; 
+	float3 colors_enhance_pix = {0.f, 0.f, 0.f}; 
     //float max_medium_attn_pix;
 
 	if (inside) {
-        medium_rgb_pix = medium_rgb[pix_id];
-        medium_bs_pix = medium_bs[pix_id];
-        medium_attn_pix = medium_attn[pix_id];
-		colors_enhance_pix = colors_enhance[pix_id];   //phi
-        prev_depth = 0.f;
+        // medium_rgb_pix = medium_rgb[pix_id];
+        // medium_bs_pix = medium_bs[pix_id];
+        // medium_attn_pix = medium_attn[pix_id];
+		// colors_enhance_pix = colors_enhance[pix_id];   //phi
+
+		medium_rgb_pix.x = medium_rgb[pix_id*3 + 0]; medium_rgb_pix.y = medium_rgb[pix_id*3 + 1]; medium_rgb_pix.z = medium_rgb[pix_id*3 + 2];
+        medium_bs_pix.x = medium_bs[pix_id*3 + 0]; medium_bs_pix.y = medium_bs[pix_id*3 + 1]; medium_bs_pix.z = medium_bs[pix_id*3 + 2];
+        medium_attn_pix.x = medium_attn[pix_id*3 + 0] ; medium_attn_pix.y = medium_attn[pix_id*3 + 1]; medium_attn_pix.z = medium_attn[pix_id*3 + 2];
+		colors_enhance_pix.x = medium_attn[pix_id*3 + 0]; colors_enhance_pix.y = medium_attn[pix_id*3 + 1]; colors_enhance_pix.z = medium_attn[pix_id*3 + 2];
+		// printf("pix id x is %d , y is %d \n", pix.x , pix.y);
+		// printf("medium_rgb_pix is %f , %f , %f \n", medium_rgb_pix.x , medium_rgb_pix.y , medium_rgb_pix.z);
+		// printf("medium_bs_pix is %f , %f , %f \n", medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z);
+		// printf("medium_attn_pix is %f , %f , %f \n", medium_attn_pix.x , medium_attn_pix.y , medium_attn_pix.z);
+	   	prev_depth = 0.f;
         // get the biggest one of medium_attn_pix xyz
         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
     }
@@ -449,10 +463,10 @@ renderCUDA(
 			// Avoid numerical instabilities (see paper appendix). 
 			float alpha = min(0.99f, con_w * exp(power));
 
-			if(pix_id == 0)
-			{
-				printf("T_i is: %f , and alpha_i is alpha %f \n", T , alpha );
-			}
+			// if(pix_id == 0)
+			// {
+			// 	printf("T_i is: %f , and alpha_i is alpha %f \n", T , alpha );
+			// }
 				
 			if (alpha < 1.0f / 255.0f)
 			{	
@@ -495,13 +509,13 @@ renderCUDA(
 			const float3 color_obj = {collected_color_x[j]*colors_enhance_pix.x, 
 				collected_color_y[j]*colors_enhance_pix.y , collected_color_z[j]*colors_enhance_pix.z}; //s_i
 
-			if(pix_id == 0)
-			{
-				printf("exp_obj is: %f , %f , %f \n", exp_obj.x , exp_obj.y , exp_obj.z );
-				printf("O_i is : %f , %f , %f \n", collected_color_x[j] , collected_color_y[j] , collected_color_z[j] );
-				printf("phi is: %f , %f , %f \n", colors_enhance_pix.x , colors_enhance_pix.y , colors_enhance_pix.z );
-				printf("color obj is: %f , %f , %f \n", color_obj.x , color_obj.y , color_obj.z );
-			}
+			// if(pix_id == 0)
+			// {
+			// 	printf("exp_obj is: %f , %f , %f \n", exp_obj.x , exp_obj.y , exp_obj.z );
+			// 	printf("O_i is : %f , %f , %f \n", collected_color_x[j] , collected_color_y[j] , collected_color_z[j] );
+			// 	printf("phi is: %f , %f , %f \n", colors_enhance_pix.x , colors_enhance_pix.y , colors_enhance_pix.z );
+			// 	printf("color obj is: %f , %f , %f \n", color_obj.x , color_obj.y , color_obj.z );
+			// }
 				
 
 			const float3 c_out = {vis * color_obj.x, vis * color_obj.y, vis * color_obj.z};
@@ -518,13 +532,13 @@ renderCUDA(
 			// if(invdepth)
 			// 	expected_invdepth += (1 / depths[collected_id[j]]) * alpha * T;
 
-			if(pix_id == 0)
-			{
-				printf("medium rgb is: %f , %f , %f \n", medium_rgb_pix.x , medium_rgb_pix.y , medium_rgb_pix.z );
-				printf("medium bs is: %f , %f , %f \n", medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z );
-				printf("prev depth is : %f \n", prev_depth );
-				printf("cur depth is : %f \n", cur_depth );
-			}
+			// if(pix_id == 0)
+			// {
+			// 	printf("medium rgb is: %f , %f , %f \n", medium_rgb_pix.x , medium_rgb_pix.y , medium_rgb_pix.z );
+			// 	printf("medium bs is: %f , %f , %f \n", medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z );
+			// 	printf("prev depth is : %f \n", prev_depth );
+			// 	printf("cur depth is : %f \n", cur_depth );
+			// }
 
 			float3 exp_bs;
             exp_bs.x = exp(-medium_bs_pix.x * prev_depth) - exp(-medium_bs_pix.x * cur_depth);
@@ -534,11 +548,11 @@ renderCUDA(
             pix_medium.y = pix_medium.y + T * exp_bs.y * medium_rgb_pix.y;
             pix_medium.z = pix_medium.z + T * exp_bs.z * medium_rgb_pix.z;
 
-			if(pix_id == 0)
-			{
-				printf("pix out accum is: %f , %f , %f \n", pix_out.x , pix_out.y , pix_out.z );
-				printf("pix medium accum is: %f , %f , %f \n", pix_medium.x , pix_medium.y , pix_medium.z );
-			}
+			// if(pix_id == 0)
+			// {
+			// 	printf("pix out accum is: %f , %f , %f \n", pix_out.x , pix_out.y , pix_out.z );
+			// 	printf("pix medium accum is: %f , %f , %f \n", pix_medium.x , pix_medium.y , pix_medium.z );
+			// }
 
 			prev_depth = cur_depth;
 			T = test_T;
@@ -578,15 +592,15 @@ renderCUDA(
 		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
 		depth_im[pix_id] = expected_depth;//输出在这
 
-		if(pix_id == 0)
-		{
-			printf("final ！！！！！ \n" );
-			printf("medium bs is: %f , %f , %f \n", medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z );
-			printf("exp bs is: %f , %f , %f \n", exp_bs.x , exp_bs.y , exp_bs.z );
-			printf("final medium is: %f , %f , %f \n", final_medium.x , final_medium.y , final_medium.z );
-			printf("final img is : %f , %f , %f \n", pix_out.x , pix_out.y , pix_out.z );
-			printf("\n\n\n\n");
-		}
+		// if(pix_id == 0)
+		// {
+			// printf("final ！！！！！ \n" );
+			// printf("pix id x is %d ,  and pix id y is %d , medium bs is: %f , %f , %f \n", pix.x , pix.y , medium_bs_pix.x , medium_bs_pix.y , medium_bs_pix.z );
+			// printf("pix id x is %d ,  and pix id y is %d , exp bs is: %f , %f , %f \n",  pix.x , pix.y , exp_bs.x , exp_bs.y , exp_bs.z );
+			// printf("pix id x is %d ,  and pix id y is %d , final medium is: %f , %f , %f \n", pix.x , pix.y , final_medium.x , final_medium.y , final_medium.z );
+			// printf("pix id x is %d ,  and pix id y is %d , final img is : %f , %f , %f \n", pix.x , pix.y , pix_out.x , pix_out.y , pix_out.z );
+			// printf("\n\n\n\n");
+		//}
 		
 
 		//out_img[pix_id] = pix_out.x; out_img[1*H*W + pix_id] = pix_out.y; out_img[2*H*W + pix_id] = 0.5;
@@ -610,15 +624,29 @@ void FORWARD::render(
 	const float* bg_color,
 	float* depths,
 	//float* depth,
-	const float3* medium_rgb,
-	const float3* medium_bs,
-	const float3* medium_attn,
-	const float3* colors_enhance,
+	// const float3* medium_rgb,
+	// const float3* medium_bs,
+	// const float3* medium_attn,
+	// const float3* colors_enhance,
+	const float* medium_rgb,
+	const float* medium_bs,
+	const float* medium_attn,
+	const float* colors_enhance,
 	float* out_img,
     float* out_clr,
     float* out_med,
     float* depth_img )
 {
+
+	// for(int i = 0 ; i < H ; i++)
+	// {
+	// 	for(int j = 0 ; j < W ; j++)
+	// 	{
+	// 		printf("i is %d, j is %d\n", i, j);
+	// 		printf("medium_bs is %f %f %f\n", medium_bs[(i * W + j)*3 + 0], medium_bs[(i * W + j)*3 + 1 ], 
+	// 			medium_bs[(i * W + j)*3 + 2]);
+	// 	}
+	// }
 	renderCUDA<NUM_CHANNELS> << <grid, block >> > (
 		ranges,
 		point_list,

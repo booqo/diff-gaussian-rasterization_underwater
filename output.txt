@@ -1,0 +1,782 @@
+P: 3, H: 4, W: 4
+medium rgb 4medium_bs 4medium_attn 4medium rgb 4medium_bs 4medium_attn 4medium rgb 3medium_bs 3medium_attn 3Tensor total elements: 48
+pix id x is 0 , y is 0 
+pix id x is 1 , y is 0 
+pix id x is 2 , y is 0 
+pix id x is 3 , y is 0 
+pix id x is 0 , y is 1 
+pix id x is 1 , y is 1 
+pix id x is 2 , y is 1 
+pix id x is 3 , y is 1 
+pix id x is 0 , y is 2 
+pix id x is 1 , y is 2 
+pix id x is 2 , y is 2 
+pix id x is 3 , y is 2 
+pix id x is 0 , y is 3 
+pix id x is 1 , y is 3 
+pix id x is 2 , y is 3 
+pix id x is 3 , y is 3 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+T_i is: 1.000000 , and alpha_i is alpha 0.001337 
+T_i is: 1.000000 , and alpha_i is alpha 0.000000 
+pix id x is 0 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+T_i is: 1.000000 , and alpha_i is alpha 0.028479 
+pix id x is 0 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 3 , exp bs is: 1.000000 , 1.000000 , 1.000000 
+pix id x is 1 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+exp_obj is: 0.049787 , 0.049787 , 0.049787 
+O_i is : 0.500000 , 0.500000 , 28.709480 
+pix id x is 0 ,  and pix id y is 2 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 1 ,  and pix id y is 2 , final medium is: 976.133850 , 976.133850 , 976.133850 
+pix id x is 2 ,  and pix id y is 2 , final medium is: 975.477051 , 975.477051 , 975.477051 
+pix id x is 3 ,  and pix id y is 2 , final medium is: 975.470520 , 975.470520 , 975.470520 
+pix id x is 0 ,  and pix id y is 3 , final medium is: 1000.000000 , 1000.000000 , 1000.000000 
+pix id x is 1 ,  and pix id y is 3 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 2 ,  and pix id y is 3 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 3 ,  and pix id y is 3 , final medium is: 998.739441 , 998.739441 , 998.739441 
+phi is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 2 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 1 ,  and pix id y is 2 , final img is : 0.205555 , 0.003580 , 0.003580 
+pix id x is 2 ,  and pix id y is 2 , final img is : 0.205654 , 0.009237 , 0.003678 
+pix id x is 3 ,  and pix id y is 2 , final img is : 0.014344 , 0.200603 , 0.003679 
+pix id x is 0 ,  and pix id y is 3 , final img is : 0.000000 , 0.000000 , 0.000000 
+pix id x is 1 ,  and pix id y is 3 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 2 ,  and pix id y is 3 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 3 ,  and pix id y is 3 , final img is : 0.000189 , 0.010857 , 0.000189 
+color obj is: 0.150000 , 0.150000 , 8.612844 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+medium rgb is: 1000.000000 , 1000.000000 , 1000.000000 
+medium bs is: 0.300000 , 0.300000 , 0.300000 
+prev depth is : 0.000000 
+cur depth is : 10.000000 
+pix out accum is: 0.000213 , 0.000213 , 0.012212 
+pix medium accum is: 950.212952 , 950.212952 , 950.212952 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+pix id x is 0 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 0 , final medium is: 998.582153 , 998.582153 , 998.582153 
+pix id x is 1 ,  and pix id y is 0 , final medium is: 972.567322 , 972.567322 , 972.567322 
+pix id x is 2 ,  and pix id y is 0 , final medium is: 972.567322 , 972.567322 , 972.567322 
+pix id x is 3 ,  and pix id y is 0 , final medium is: 997.357422 , 997.357422 , 997.357422 
+pix id x is 0 ,  and pix id y is 1 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 1 ,  and pix id y is 1 , final medium is: 974.240479 , 974.240479 , 974.240479 
+pix id x is 2 ,  and pix id y is 1 , final medium is: 973.631653 , 973.631653 , 973.631653 
+pix id x is 3 ,  and pix id y is 1 , final medium is: 975.470520 , 975.470520 , 975.470520 
+pix id x is 0 ,  and pix id y is 0 , final img is : 0.000213 , 0.000213 , 0.012212 
+pix id x is 1 ,  and pix id y is 0 , final img is : 0.014780 , 0.004115 , 0.225609 
+pix id x is 2 ,  and pix id y is 0 , final img is : 0.014780 , 0.004115 , 0.225609 
+pix id x is 3 ,  and pix id y is 0 , final img is : 0.000396 , 0.011065 , 0.012092 
+pix id x is 0 ,  and pix id y is 1 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 1 ,  and pix id y is 1 , final img is : 0.205839 , 0.003864 , 0.019887 
+pix id x is 2 ,  and pix id y is 1 , final img is : 0.205931 , 0.009514 , 0.019573 
+pix id x is 3 ,  and pix id y is 1 , final img is : 0.014344 , 0.200603 , 0.003679 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+T is 1.000000
+alpha is 0.028479
+curdepth is 10.000000
+latter depth is 100.000000
+dL_dcmed is 0.048369 0.048369 0.048369
+cur thread id is 0 0 
+dL_dmedium_rgb is 0.998582 0.998582 0.998582
+dL_dmedium_bs is 14.178902 14.178902 14.178902
+dL_dmedium_attn is 0.000000 0.000000 0.000000
+P: 3, H: 4, W: 4
+medium rgb 4medium_bs 4medium_attn 4medium rgb 4medium_bs 4medium_attn 4medium rgb 3medium_bs 3medium_attn 3Tensor total elements: 48
+pix id x is 0 , y is 0 
+pix id x is 1 , y is 0 
+pix id x is 2 , y is 0 
+pix id x is 3 , y is 0 
+pix id x is 0 , y is 1 
+pix id x is 1 , y is 1 
+pix id x is 2 , y is 1 
+pix id x is 3 , y is 1 
+pix id x is 0 , y is 2 
+pix id x is 1 , y is 2 
+pix id x is 2 , y is 2 
+pix id x is 3 , y is 2 
+pix id x is 0 , y is 3 
+pix id x is 1 , y is 3 
+pix id x is 2 , y is 3 
+pix id x is 3 , y is 3 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_bs_pix is 0.301000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+T_i is: 1.000000 , and alpha_i is alpha 0.001337 
+T_i is: 1.000000 , and alpha_i is alpha 0.000000 
+pix id x is 0 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+T_i is: 1.000000 , and alpha_i is alpha 0.028479 
+pix id x is 0 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 3 , exp bs is: 1.000000 , 1.000000 , 1.000000 
+pix id x is 1 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+exp_obj is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 2 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 1 ,  and pix id y is 2 , final medium is: 976.133850 , 976.133850 , 976.133850 
+pix id x is 2 ,  and pix id y is 2 , final medium is: 975.477051 , 975.477051 , 975.477051 
+pix id x is 3 ,  and pix id y is 2 , final medium is: 975.470520 , 975.470520 , 975.470520 
+pix id x is 0 ,  and pix id y is 3 , final medium is: 1000.000000 , 1000.000000 , 1000.000000 
+pix id x is 1 ,  and pix id y is 3 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 2 ,  and pix id y is 3 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 3 ,  and pix id y is 3 , final medium is: 998.739441 , 998.739441 , 998.739441 
+O_i is : 0.500000 , 0.500000 , 28.709480 
+phi is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 2 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 1 ,  and pix id y is 2 , final img is : 0.205555 , 0.003580 , 0.003580 
+pix id x is 2 ,  and pix id y is 2 , final img is : 0.205654 , 0.009237 , 0.003678 
+pix id x is 3 ,  and pix id y is 2 , final img is : 0.014344 , 0.200603 , 0.003679 
+pix id x is 0 ,  and pix id y is 3 , final img is : 0.000000 , 0.000000 , 0.000000 
+pix id x is 1 ,  and pix id y is 3 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 2 ,  and pix id y is 3 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 3 ,  and pix id y is 3 , final img is : 0.000189 , 0.010857 , 0.000189 
+color obj is: 0.150000 , 0.150000 , 8.612844 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+medium rgb is: 1000.000000 , 1000.000000 , 1000.000000 
+medium bs is: 0.301000 , 0.300000 , 0.300000 
+prev depth is : 0.000000 
+cur depth is : 10.000000 
+pix out accum is: 0.000213 , 0.000213 , 0.012212 
+pix medium accum is: 950.708313 , 950.212952 , 950.212952 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+pix id x is 0 ,  and pix id y is 0 , medium bs is: 0.301000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 0 , exp bs is: 0.049292 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 0 , final medium is: 998.596191 , 998.582153 , 998.582153 
+pix id x is 1 ,  and pix id y is 0 , final medium is: 972.567322 , 972.567322 , 972.567322 
+pix id x is 2 ,  and pix id y is 0 , final medium is: 972.567322 , 972.567322 , 972.567322 
+pix id x is 3 ,  and pix id y is 0 , final medium is: 997.357422 , 997.357422 , 997.357422 
+pix id x is 0 ,  and pix id y is 1 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 1 ,  and pix id y is 1 , final medium is: 974.240479 , 974.240479 , 974.240479 
+pix id x is 2 ,  and pix id y is 1 , final medium is: 973.631653 , 973.631653 , 973.631653 
+pix id x is 3 ,  and pix id y is 1 , final medium is: 975.470520 , 975.470520 , 975.470520 
+pix id x is 0 ,  and pix id y is 0 , final img is : 0.000213 , 0.000213 , 0.012212 
+pix id x is 1 ,  and pix id y is 0 , final img is : 0.014780 , 0.004115 , 0.225609 
+pix id x is 2 ,  and pix id y is 0 , final img is : 0.014780 , 0.004115 , 0.225609 
+pix id x is 3 ,  and pix id y is 0 , final img is : 0.000396 , 0.011065 , 0.012092 
+pix id x is 0 ,  and pix id y is 1 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 1 ,  and pix id y is 1 , final img is : 0.205839 , 0.003864 , 0.019887 
+pix id x is 2 ,  and pix id y is 1 , final img is : 0.205931 , 0.009514 , 0.019573 
+pix id x is 3 ,  and pix id y is 1 , final img is : 0.014344 , 0.200603 , 0.003679 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+P: 3, H: 4, W: 4
+medium rgb 4medium_bs 4medium_attn 4medium rgb 4medium_bs 4medium_attn 4medium rgb 3medium_bs 3medium_attn 3Tensor total elements: 48
+pix id x is 0 , y is 0 
+pix id x is 1 , y is 0 
+pix id x is 2 , y is 0 
+pix id x is 3 , y is 0 
+pix id x is 0 , y is 1 
+pix id x is 1 , y is 1 
+pix id x is 2 , y is 1 
+pix id x is 3 , y is 1 
+pix id x is 0 , y is 2 
+pix id x is 1 , y is 2 
+pix id x is 2 , y is 2 
+pix id x is 3 , y is 2 
+pix id x is 0 , y is 3 
+pix id x is 1 , y is 3 
+pix id x is 2 , y is 3 
+pix id x is 3 , y is 3 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_rgb_pix is 1000.000000 , 1000.000000 , 1000.000000 
+medium_bs_pix is 0.299000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_bs_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+medium_attn_pix is 0.300000 , 0.300000 , 0.300000 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+T_i is: 1.000000 , and alpha_i is alpha 0.001337 
+T_i is: 1.000000 , and alpha_i is alpha 0.000000 
+pix id x is 0 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 2 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 3 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+T_i is: 1.000000 , and alpha_i is alpha 0.028479 
+pix id x is 0 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 2 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 3 , exp bs is: 1.000000 , 1.000000 , 1.000000 
+pix id x is 1 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 3 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+exp_obj is: 0.049787 , 0.049787 , 0.049787 
+O_i is : 0.500000 , 0.500000 , 28.709480 
+pix id x is 0 ,  and pix id y is 2 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 1 ,  and pix id y is 2 , final medium is: 976.133850 , 976.133850 , 976.133850 
+pix id x is 2 ,  and pix id y is 2 , final medium is: 975.477051 , 975.477051 , 975.477051 
+pix id x is 3 ,  and pix id y is 2 , final medium is: 975.470520 , 975.470520 , 975.470520 
+pix id x is 0 ,  and pix id y is 3 , final medium is: 1000.000000 , 1000.000000 , 1000.000000 
+pix id x is 1 ,  and pix id y is 3 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 2 ,  and pix id y is 3 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 3 ,  and pix id y is 3 , final medium is: 998.739441 , 998.739441 , 998.739441 
+phi is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 2 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 1 ,  and pix id y is 2 , final img is : 0.205555 , 0.003580 , 0.003580 
+pix id x is 2 ,  and pix id y is 2 , final img is : 0.205654 , 0.009237 , 0.003678 
+pix id x is 3 ,  and pix id y is 2 , final img is : 0.014344 , 0.200603 , 0.003679 
+pix id x is 0 ,  and pix id y is 3 , final img is : 0.000000 , 0.000000 , 0.000000 
+pix id x is 1 ,  and pix id y is 3 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 2 ,  and pix id y is 3 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 3 ,  and pix id y is 3 , final img is : 0.000189 , 0.010857 , 0.000189 
+color obj is: 0.150000 , 0.150000 , 8.612844 
+medium rgb is: 1000.000000 , 1000.000000 , 1000.000000 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+medium bs is: 0.299000 , 0.300000 , 0.300000 
+prev depth is : 0.000000 
+cur depth is : 10.000000 
+pix out accum is: 0.000213 , 0.000213 , 0.012212 
+pix medium accum is: 949.712585 , 950.212952 , 950.212952 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+final ！！！！！ 
+pix id x is 0 ,  and pix id y is 0 , medium bs is: 0.299000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 0 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 1 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 2 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 3 ,  and pix id y is 1 , medium bs is: 0.300000 , 0.300000 , 0.300000 
+pix id x is 0 ,  and pix id y is 0 , exp bs is: 0.050287 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 0 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 1 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 2 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 3 ,  and pix id y is 1 , exp bs is: 0.049787 , 0.049787 , 0.049787 
+pix id x is 0 ,  and pix id y is 0 , final medium is: 998.567871 , 998.582153 , 998.582153 
+pix id x is 1 ,  and pix id y is 0 , final medium is: 972.567322 , 972.567322 , 972.567322 
+pix id x is 2 ,  and pix id y is 0 , final medium is: 972.567322 , 972.567322 , 972.567322 
+pix id x is 3 ,  and pix id y is 0 , final medium is: 997.357422 , 997.357422 , 997.357422 
+pix id x is 0 ,  and pix id y is 1 , final medium is: 998.739807 , 998.739807 , 998.739807 
+pix id x is 1 ,  and pix id y is 1 , final medium is: 974.240479 , 974.240479 , 974.240479 
+pix id x is 2 ,  and pix id y is 1 , final medium is: 973.631653 , 973.631653 , 973.631653 
+pix id x is 3 ,  and pix id y is 1 , final medium is: 975.470520 , 975.470520 , 975.470520 
+pix id x is 0 ,  and pix id y is 0 , final img is : 0.000213 , 0.000213 , 0.012212 
+pix id x is 1 ,  and pix id y is 0 , final img is : 0.014780 , 0.004115 , 0.225609 
+pix id x is 2 ,  and pix id y is 0 , final img is : 0.014780 , 0.004115 , 0.225609 
+pix id x is 3 ,  and pix id y is 0 , final img is : 0.000396 , 0.011065 , 0.012092 
+pix id x is 0 ,  and pix id y is 1 , final img is : 0.010854 , 0.000189 , 0.000189 
+pix id x is 1 ,  and pix id y is 1 , final img is : 0.205839 , 0.003864 , 0.019887 
+pix id x is 2 ,  and pix id y is 1 , final img is : 0.205931 , 0.009514 , 0.019573 
+pix id x is 3 ,  and pix id y is 1 , final img is : 0.014344 , 0.200603 , 0.003679 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+gradient check for  sigma_bs
+tensor([[[ 998.5822,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]],
+
+        [[ 998.5822,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]],
+
+        [[ 998.5822,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]]], device='cuda:0',
+       grad_fn=<_RasterizeGaussiansBackward>)
+tensor([[[ 998.5962,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]],
+
+        [[ 998.5822,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]],
+
+        [[ 998.5822,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]]], device='cuda:0') tensor(47355.6055, device='cuda:0') tensor(998.5962, device='cuda:0')
+tensor([[[ 998.5679,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]],
+
+        [[ 998.5822,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]],
+
+        [[ 998.5822,  972.5673,  972.5673,  997.3574],
+         [ 998.7398,  974.2405,  973.6317,  975.4705],
+         [ 998.7398,  976.1339,  975.4771,  975.4705],
+         [1000.0000,  998.7398,  998.7398,  998.7394]]], device='cuda:0') tensor(47355.5781, device='cuda:0') tensor(998.5679, device='cuda:0')
+numerical_grad
+ [[[13.671874  0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]]
+
+ [[ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]]
+
+ [[ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]]
+
+ [[ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]]]
+numerical_grad2
+ [[[14.160155  0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]]
+
+ [[ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]]
+
+ [[ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]]
+
+ [[ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]
+  [ 0.        0.        0.      ]]]
+autograd_grad
+ [[[1.41789017e+01 1.41789017e+01 1.41789017e+01]
+  [2.74327118e+02 2.74327118e+02 2.74327118e+02]
+  [2.74327118e+02 2.74327118e+02 2.74327118e+02]
+  [2.64259720e+01 2.64259720e+01 2.64259720e+01]]
+
+ [[1.26021805e+01 1.26021805e+01 1.26021805e+01]
+  [2.57595245e+02 2.57595245e+02 2.57595245e+02]
+  [2.63683411e+02 2.63683411e+02 2.63683411e+02]
+  [2.45294678e+02 2.45294678e+02 2.45294678e+02]]
+
+ [[1.26021805e+01 1.26021805e+01 1.26021805e+01]
+  [2.38661530e+02 2.38661530e+02 2.38661530e+02]
+  [2.45229431e+02 2.45229431e+02 2.45229431e+02]
+  [2.45294678e+02 2.45294678e+02 2.45294678e+02]]
+
+ [[9.35760536e-09 9.35760536e-09 9.35760536e-09]
+  [1.26021805e+01 1.26021805e+01 1.26021805e+01]
+  [1.26021805e+01 1.26021805e+01 1.26021805e+01]
+  [1.26060867e+01 1.26060867e+01 1.26060867e+01]]]

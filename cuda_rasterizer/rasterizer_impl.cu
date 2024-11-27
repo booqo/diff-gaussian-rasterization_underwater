@@ -210,10 +210,14 @@ int CudaRasterizer::Rasterizer::forward(
 	const float scale_modifier,
 	const float* rotations,
 	const float* cov3D_precomp,
-	const float3* medium_rgb, 
-	const float3* medium_bs, 
-	const float3* medium_attn,
-	const float3* colors_enhance,
+	// const float3* medium_rgb, 
+	// const float3* medium_bs, 
+	// const float3* medium_attn,
+	// const float3* colors_enhance,
+	const float* medium_rgb, 
+	const float* medium_bs, 
+	const float* medium_attn,
+	const float* colors_enhance,
 	float* out_img,
 	float* out_clr,
 	float* out_med,
@@ -231,16 +235,28 @@ int CudaRasterizer::Rasterizer::forward(
 	const float focal_y = height / (2.0f * tan_fovy);
 	const float focal_x = width / (2.0f * tan_fovx);
 
-	printf("width is %d, height is %d\n", width, height);
+	// printf("width is %d, height is %d\n", width, height);
+	//printf("Tensor total elements: %d\n", medium_bs.numel());
 
-	for(int i = 0 ; i < height ; i++)
-	{
-		for(int j = 0 ; j < width ; j++)
-		{
-			printf("i is %d, j is %d\n", i, j);
-			printf("medium_bs is %f %f %f\n", medium_bs[i * width + j].x, medium_bs[i * width + j].y, medium_bs[i * width + j].z);
-		}
-	}
+	// for(int i = 0 ; i < height ; i++)
+	// {
+	// 	for(int j = 0 ; j < width ; j++)
+	// 	{
+	// 		printf("i is %d, j is %d\n", i, j);
+	// 		printf("outimage is %f %f %f\n", out_img[i*width + j ], out_img[ 1*width*height + i*width + j], 
+	// 			out_img[2*width*height + i*width + j]);
+	// 	}
+	// }
+
+	// for(int i = 0 ; i < height ; i++)
+	// {
+	// 	for(int j = 0 ; j < width ; j++)
+	// 	{
+	// 		printf("i is %d, j is %d\n", i, j);
+	// 		printf("medium_bs is %f %f %f\n", medium_bs[(i * width + j)*3 + 0], medium_bs[(i * width + j)*3 + 1 ], 
+	// 			medium_bs[(i * width + j)*3 + 2]);
+	// 	}
+	// }
 
 	size_t chunk_size = required<GeometryState>(P);
 	char* chunkptr = geometryBuffer(chunk_size);
