@@ -317,54 +317,54 @@ def setup_camera_settings():
     cam_pos = torch.tensor(cam_pos, dtype=torch.float32, device="cuda")
     return cam_pos, viewmatrix, tanfovx,tanfovy,projmatrix
 def setup_gaussian_params(projmatrix):# 里面改高斯的个数，手动加
-    # # 定义高斯体的中心点和特征
-    # pts = np.array([
-    #     [0, 0, 10.0],  # 位于正Z轴方向
-    #     [-0.2, -0, 10.0],
-    #     [-0, 0.2, 10.0],
-    #     [-0.2, -0, 10.0],
-    #     [-0, 0.2, 10.0],
-    #     [-0.2, -0, 10.0],
-    #     [-0, 0.2, 10.0],
-    #     [-0.2, -0, 10.0],
-    #     [-0, 0.2, 10.0],
-    #     [-0, 0.2, 10.0],
-    #     [-0.2, -0, 10.0],
-    #     [-0.2, -0, 10.0]
-    # ], dtype=np.float32)
-    # n = len(pts)  # 高斯体数量
-    #
-    # # 设置固定颜色（进一步调整以避免超出范围）
-    # desired_colors = np.array([
-    #     [100, 0.0, 0.0],  # 高斯体 1: 红色
-    #     [0.0, 100, 0.0],  # 高斯体 2: 绿色
-    #     [0.0, 0.0, 100],  # 高斯体 3: 蓝色
-    #     [100, 0.0, 0.0],  # 高斯体 1: 红色
-    #     [0.0, 100, 0.0],  # 高斯体 2: 绿色
-    #     [0.0, 0.0, 100],  # 高斯体 3: 蓝色
-    #     [100, 0.0, 0.0],  # 高斯体 1: 红色
-    #     [0.0, 100, 0.0],  # 高斯体 2: 绿色
-    #     [0.0, 0.0, 100],  # 高斯体 3: 蓝色
-    #     [100, 0.0, 0.0],  # 高斯体 1: 红色
-    #     [0.0, 100, 0.0],  # 高斯体 2: 绿色
-    #     [0.0, 0.0, 100],  # 高斯体 3: 蓝色
-    # ], dtype=np.float32)
-    #
-    # # 初始化球谐函数系数为全零，并设置零阶系数为所需颜色(固定颜色)
-    # shs = np.zeros((n, 16, 3), dtype=np.float32)
-    # shs[:, 0, :] = desired_colors  # 设置零阶系数
+    # 定义高斯体的中心点和特征
+    pts = np.array([
+        [0, 0, 10.0],  # 位于正Z轴方向
+        [-0.2, -0, 10.0],
+        [-0, 0.2, 10.0],
+        # [-0.2, -0, 10.0],
+        # [-0, 0.2, 10.0],
+        # [-0.2, -0, 10.0],
+        # [-0, 0.2, 10.0],
+        # [-0.2, -0, 10.0],
+        # [-0, 0.2, 10.0],
+        # [-0, 0.2, 10.0],
+        # [-0.2, -0, 10.0],
+        # [-0.2, -0, 10.0]
+    ], dtype=np.float32)
+    n = len(pts)  # 高斯体数量
 
-    n = 800
-    x_range = (-1.0, 1.0)
-    y_range = (-1.0, 1.0)
-    z_range = (5.0, 15.0)
-    np.random.seed(n)
-    x = np.random.uniform(low=x_range[0], high=x_range[1], size=n)
-    y = np.random.uniform(low=y_range[0], high=y_range[1], size=n)
-    z = np.random.uniform(low=z_range[0], high=z_range[1], size=n)
-    pts = np.stack([x, y, z], axis=-1).astype(np.float32)
-    shs = np.random.uniform(0,1,(n, 16, 3))
-    shs[:, 1:, :]=0
+    # 设置固定颜色（进一步调整以避免超出范围）
+    desired_colors = np.array([
+        [100, 0.0, 0.0],  # 高斯体 1: 红色
+        [0.0, 100, 0.0],  # 高斯体 2: 绿色
+        [0.0, 0.0, 100],  # 高斯体 3: 蓝色
+        # [100, 0.0, 0.0],  # 高斯体 1: 红色
+        # [0.0, 100, 0.0],  # 高斯体 2: 绿色
+        # [0.0, 0.0, 100],  # 高斯体 3: 蓝色
+        # [100, 0.0, 0.0],  # 高斯体 1: 红色
+        # [0.0, 100, 0.0],  # 高斯体 2: 绿色
+        # [0.0, 0.0, 100],  # 高斯体 3: 蓝色
+        # [100, 0.0, 0.0],  # 高斯体 1: 红色
+        # [0.0, 100, 0.0],  # 高斯体 2: 绿色
+        # [0.0, 0.0, 100],  # 高斯体 3: 蓝色
+    ], dtype=np.float32)
+
+    # 初始化球谐函数系数为全零，并设置零阶系数为所需颜色(固定颜色)
+    shs = np.zeros((n, 16, 3), dtype=np.float32)
+    shs[:, 0, :] = desired_colors  # 设置零阶系数
+
+    # n = 800
+    # x_range = (-1.0, 1.0)
+    # y_range = (-1.0, 1.0)
+    # z_range = (5.0, 15.0)
+    # np.random.seed(n)
+    # x = np.random.uniform(low=x_range[0], high=x_range[1], size=n)
+    # y = np.random.uniform(low=y_range[0], high=y_range[1], size=n)
+    # z = np.random.uniform(low=z_range[0], high=z_range[1], size=n)
+    # pts = np.stack([x, y, z], axis=-1).astype(np.float32)
+    # shs = np.random.uniform(0,1,(n, 16, 3))
+    # shs[:, 1:, :]=0
 
 
     # 设置其他高斯体属性
@@ -446,7 +446,7 @@ rasterizer2 = create_rasterizer2(H, W ,tanfovx,tanfovy, bg, viewmatrix,projmatri
 # 检查water光栅化的梯度
 gs_list = {'pts': pts,'shs': shs,'opacities': opacities,'scales': scales}
 water_list = {**gs_list , **{'c_med': c_med,'sigma_bs': sigma_bs,'sigma_atten': sigma_atten,'colors_enhance': colors_enhance}}
-for test_param in water_list:
+for test_param in gs_list:
     gradient_check(
         variable_name=test_param,
         variable=water_list[test_param],  # 要检查的变量
@@ -466,19 +466,19 @@ for test_param in water_list:
         colors_enhance=colors_enhance
     )
 
-for test_param in gs_list:
-    # 检查 原始高斯光栅化梯度
-    gradient_check_gs(
-        variable_name=test_param,
-        variable=gs_list[test_param],  # 要检查的变量
-        rasterizer=rasterizer2,
-        loss_fn=loss_function_gs,
-        means3D=pts,
-        means2D=screenspace_points,
-        shs=shs,
-        colors_precomp=None,
-        opacities=opacities,
-        scales=scales,
-        rotations=rotations,
-        cov3D_precomp=None
-    )
+# for test_param in gs_list:
+#     # 检查 原始高斯光栅化梯度
+#     gradient_check_gs(
+#         variable_name=test_param,
+#         variable=gs_list[test_param],  # 要检查的变量
+#         rasterizer=rasterizer2,
+#         loss_fn=loss_function_gs,
+#         means3D=pts,
+#         means2D=screenspace_points,
+#         shs=shs,
+#         colors_precomp=None,
+#         opacities=opacities,
+#         scales=scales,
+#         rotations=rotations,
+#         cov3D_precomp=None
+#     )
