@@ -366,7 +366,7 @@ renderCUDA(
     float3 medium_bs_pix;
     float3 medium_attn_pix;
 	float3 colors_enhance_pix;
-    //float max_medium_attn_pix;
+    float min_medium_attn_pix;
 
 	if (inside) {
         medium_rgb_pix = medium_rgb[pix_id];
@@ -376,6 +376,8 @@ renderCUDA(
         prev_depth = 0.f;
         // get the biggest one of medium_attn_pix xyz
         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
+
+		min_medium_attn_pix = std::min(medium_attn_pix.x, std::min(medium_attn_pix.y, medium_attn_pix.z));
     }
 
 

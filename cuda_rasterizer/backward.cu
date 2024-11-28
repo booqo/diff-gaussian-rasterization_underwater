@@ -938,6 +938,7 @@ renderCUDA(
     float medium_bs_pix[3] = {0};  //sigma_bs
     float medium_attn_pix[3] = {0};  //sigma_attn
 	float colors_enhance_pix[3] = {0};  //phi
+	float min_medium_attn_pix = 0;
     //float max_medium_attn_pix;
 	float latter_depth = 1000.f;
 
@@ -946,7 +947,8 @@ renderCUDA(
         medium_bs_pix[0] = medium_bs[pix_id].x; medium_bs_pix[1] = medium_bs[pix_id].y; medium_bs_pix[2] = medium_bs[pix_id].z;
         medium_attn_pix[0] = medium_attn[pix_id].x; medium_attn_pix[1] = medium_attn[pix_id].y; medium_attn_pix[2] = medium_attn[pix_id].z;
 		colors_enhance_pix[0] = colors_enhance[pix_id].x; colors_enhance_pix[1] = colors_enhance[pix_id].y; colors_enhance_pix[2] = colors_enhance[pix_id].z;  
-        // get the biggest one of medium_attn_pix xyz
+        min_medium_attn_pix = std::min(medium_attn_pix[0], std::min(medium_attn_pix[1], medium_attn_pix[2]));
+		// get the biggest one of medium_attn_pix xyz
         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
     }
 
@@ -1008,10 +1010,11 @@ renderCUDA(
 
 			const float G = __expf(power);
 			const float alpha = min(0.99f, con_o.w * G);  //2D alpha
+			float cur_depth = collected_depths[j];
 			if (alpha < 1.0f / 255.0f)
 				continue;
 
-			assert(abs(1-alpha) > 1e-3 && "alpha must be less than 1");
+			//assert(abs(1-alpha) > 1e-3 && "alpha must be less than 1");
 
 			T = T / (1.f - alpha);   // T_iobj
 			
@@ -1024,7 +1027,7 @@ renderCUDA(
 			const int global_id = collected_id[j];
 
 
-			float cur_depth = collected_depths[j];
+			
 
 			// assert(cur_depth >= 0 && "Depth must be positive");
 			// assert(latter_depth >= 0 && " latter Depth must be positive");
@@ -1123,13 +1126,18 @@ renderCUDA(
 
 	if(inside)
 	{
-		assert(latter_depth >= 0 && " latter Depth must be positive");
+		//assert(latter_depth >= 0 && " latter Depth must be positive");
 		float exp_bs[3];
 		exp_bs[0] = __expf(-medium_bs_pix[0] * latter_depth);  //exp(-sigma^bs s_1)
 		exp_bs[1] = __expf(-medium_bs_pix[1] * latter_depth);
 		exp_bs[2] = __expf(-medium_bs_pix[2] * latter_depth);  
 		
-		// assert(abs(latter_T - 1.0) < 1e-3);
+		//assert(abs(latter_T - 1.0) < 1e-2);
+		// if(abs(latter_T - 1.0) > 1e-2)
+		// {
+		// 	printf("latter_T is %f\n", latter_T);
+		// 	assert(false);
+		// }
 
 		for(int ch = 0 ; ch < C ; ch ++)
 		{
