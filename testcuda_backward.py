@@ -99,30 +99,74 @@ def gradient_check(variable_name, variable, rasterizer, loss_fn, **kwargs):
         numerical_grad_flat[idx] = (loss_plus - loss_minus) / (2 * epsilon)
         # print("numerical_grad\n", numerical_grad_flat[idx])
         # print("autograd_grad\n", autograd_grad_flat[idx])
-
-    # 重新形状还原
-    
     
     numerical_grad = numerical_grad_flat.view_as(variable)
     autograd_grad = autograd_grad_flat.view_as(variable)
-    print("numerical_grad\n", numerical_grad.detach().cpu().numpy())
-    print("autograd_grad\n", autograd_grad.detach().cpu().numpy())
+    # print("numerical_grad\n", numerical_grad.detach().cpu().numpy())
+    # print("autograd_grad\n", autograd_grad.detach().cpu().numpy())
+
+    save_gradient_as_image(numerical_grad, f'grad_image/water_grad/{variable_name}numerical_grad.png')
+    save_gradient_as_image(autograd_grad, f'grad_image/water_grad/{variable_name}autograd_grad.png')
+    # save_gradient_channels_as_image(numerical_grad, 'water_grad/numerical_grad_channels.png')
+    # save_gradient_channels_as_image(autograd_grad, 'water_grad/autograd_grad_channels.png')
+
+def save_gradient_as_image(gradient, filename):
+    """
+    Normalize and save the gradient tensor as an image.
+
+    Args:
+    gradient (torch.Tensor): The gradient tensor to visualize.
+    filename (str): The path to save the image file.
+    """
+    # Detach gradient, move to CPU and convert to numpy
+    grad_array = gradient.detach().cpu().numpy()
+
+    # Normalize the gradient to 0-1 for better visualization
+    # grad_norm = (grad_array - np.min(grad_array)) / (np.max(grad_array) - np.min(grad_array) + 1e-5)
+
+    # Plotting
+    plt.imshow(grad_array, cmap='viridis')  # You can choose a colormap that fits your needs
+    plt.colorbar()
+    plt.title('Gradient Visualization')
+    plt.axis('off')  # Turn off axis numbers and ticks
+
+    # Save the plot as an image file
+    plt.savefig(filename)
+    plt.close()
+def save_gradient_channels_as_image(gradient, filename):
+    """
+    Normalize and save each channel of the gradient tensor as an image.
+
+    Args:
+    gradient (torch.Tensor): The gradient tensor to visualize, expected to have shape [H, W, C].
+    filename (str): The path to save the image file.
+    """
+    if gradient.dim() == 4:
+        gradient = gradient.squeeze(0)  # Remove batch dimension if exists
+    if gradient.dim() != 3 or gradient.size(2) != 3:
+        raise ValueError("Gradient tensor must have 3 channels.")
+
+    # Detach gradient, move to CPU and convert to numpy
+    grad_array = gradient.detach().cpu().numpy()
+
+    # Normalize each channel separately to 0-1 for better visualization
+    fig, axs = plt.subplots(1, 3, figsize=(15, 5))  # Create a figure with 3 subplots
+    channel_titles = ['Channel 1 - Red', 'Channel 2 - Green', 'Channel 3 - Blue']
+    for i in range(3):
+        channel_grad = grad_array[:, :, i]
+        grad_norm = (channel_grad - np.min(channel_grad)) / (np.max(channel_grad) - np.min(channel_grad) + 1e-5)
+        ax = axs[i]
+        im = ax.imshow(grad_norm, cmap='viridis')
+        ax.set_title(channel_titles[i])
+        ax.axis('off')  # Turn off axis numbers and ticks
+        fig.colorbar(im, ax=ax)
+
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
 
 
 
-    # # 计算相对误差
-    # relative_error = (autograd_grad - numerical_grad).abs() #/ (numerical_grad.abs() + 1e-8)
-    # max_error = relative_error.max().item()
-    # mean_error = relative_error.mean().item()
-    #
-    # print(f"梯度检查 - {variable_name}: 最大相对误差 = {max_error:.6f}, 平均相对误差 = {mean_error:.6f}")
-    #
-    # if max_error < 1e-3:
-    #     print(f"{variable_name} 的梯度实现可能是正确的。")
-    # else:
-    #     print(f"{variable_name} 的梯度实现可能存在问题，请检查。")
-
-# 定义一个简单的损失函数
 def loss_function(outputs):
     color_attn, color_clr, color_medium, radii, depths = outputs
     return (color_attn+color_medium).sum()
@@ -170,8 +214,8 @@ R = np.array([
     [0, 1, 0],
     [0, 0, 1]
 ], dtype=np.float32)  # 相机朝向正Z轴
-H = 4
-W = 4
+H = 40
+W = 40
 
 
 # 生成视图矩阵和投影矩阵
@@ -261,85 +305,6 @@ gradient_check(
     colors_enhance=colors_enhance
 )
 
-
-# # 检查 sigma_bs 的梯度 目前有问题
-gradient_check(
-    variable_name='sigma_bs',
-    variable=sigma_bs,  # 要检查的变量
-    rasterizer=rasterizer,
-    loss_fn=loss_function,
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=None,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None,
-    medium_rgb=c_med,
-    medium_bs=sigma_bs,
-    medium_attn=sigma_atten,
-    colors_enhance=colors_enhance
-)
-#
-# # 检查 sigma_atten 的梯度
-gradient_check(
-    variable_name='sigma_atten',
-    variable=sigma_atten,  # 要检查的变量
-    rasterizer=rasterizer,
-    loss_fn=loss_function,
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=None,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None,
-    medium_rgb=c_med,
-    medium_bs=sigma_bs,
-    medium_attn=sigma_atten,
-    colors_enhance=colors_enhance
-)
-#
-# # 检查 colors_enhance 的梯度
-gradient_check(
-    variable_name='colors_enhance',
-    variable=colors_enhance,  # 要检查的变量
-    rasterizer=rasterizer,
-    loss_fn=loss_function,
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=None,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None,
-    medium_rgb=c_med,
-    medium_bs=sigma_bs,
-    medium_attn=sigma_atten,
-    colors_enhance=colors_enhance
-)
-
-gradient_check(
-    variable_name='colors_enhance',
-    variable=colors_enhance,  # 要检查的变量
-    rasterizer=rasterizer,
-    loss_fn=loss_function,
-    means3D=pts,
-    means2D=screenspace_points,
-    shs=shs,
-    colors_precomp=None,
-    opacities=opacities,
-    scales=scales,
-    rotations=rotations,
-    cov3D_precomp=None,
-    medium_rgb=c_med,
-    medium_bs=sigma_bs,
-    medium_attn=sigma_atten,
-    colors_enhance=colors_enhance
-)
 # """-----------------------------------------------------------------"""
 # raster_settings = GaussianRasterizationSettings2(
 #     image_height=H,                       # 输出图像高度
@@ -441,8 +406,10 @@ gradient_check(
 #     # 重新形状还原
 #     numerical_grad = numerical_grad_flat.view_as(variable)
 #     autograd_grad = autograd_grad_flat.view_as(variable)
-#     print("numerical_grad\n",numerical_grad.detach().cpu().numpy())
-#     print("autograd_grad\n",autograd_grad.detach().cpu().numpy())
+#     # print("numerical_grad\n",numerical_grad.detach().cpu().numpy())
+#     # print("autograd_grad\n",autograd_grad.detach().cpu().numpy())
+#     save_gradient_as_image(numerical_grad, 'grad_image/gs_numerical_grad.png')
+#     save_gradient_as_image(autograd_grad, 'grad_image/gs_autograd_grad.png')
 #
 #
 #     # 计算相对误差
@@ -459,8 +426,8 @@ gradient_check(
 #
 # # 检查 原始高斯梯度
 # gradient_check2(
-#     variable_name='pts',
-#     variable=pts,  # 要检查的变量
+#     variable_name='shs',
+#     variable=shs,  # 要检查的变量
 #     rasterizer=rasterizer,
 #     loss_fn=loss_function2,
 #     means3D=pts,

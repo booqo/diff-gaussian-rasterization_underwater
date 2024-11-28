@@ -317,24 +317,55 @@ def setup_camera_settings():
     cam_pos = torch.tensor(cam_pos, dtype=torch.float32, device="cuda")
     return cam_pos, viewmatrix, tanfovx,tanfovy,projmatrix
 def setup_gaussian_params(projmatrix):# 里面改高斯的个数，手动加
-    # 定义高斯体的中心点和特征
-    pts = np.array([
-        [0, 0, 10.0],  # 位于正Z轴方向
-        [-0.2, -0, 10.0],
-        [-0, 0.2, 10.0]
-    ], dtype=np.float32)
-    n = len(pts)  # 高斯体数量
+    # # 定义高斯体的中心点和特征
+    # pts = np.array([
+    #     [0, 0, 10.0],  # 位于正Z轴方向
+    #     [-0.2, -0, 10.0],
+    #     [-0, 0.2, 10.0],
+    #     [-0.2, -0, 10.0],
+    #     [-0, 0.2, 10.0],
+    #     [-0.2, -0, 10.0],
+    #     [-0, 0.2, 10.0],
+    #     [-0.2, -0, 10.0],
+    #     [-0, 0.2, 10.0],
+    #     [-0, 0.2, 10.0],
+    #     [-0.2, -0, 10.0],
+    #     [-0.2, -0, 10.0]
+    # ], dtype=np.float32)
+    # n = len(pts)  # 高斯体数量
+    #
+    # # 设置固定颜色（进一步调整以避免超出范围）
+    # desired_colors = np.array([
+    #     [100, 0.0, 0.0],  # 高斯体 1: 红色
+    #     [0.0, 100, 0.0],  # 高斯体 2: 绿色
+    #     [0.0, 0.0, 100],  # 高斯体 3: 蓝色
+    #     [100, 0.0, 0.0],  # 高斯体 1: 红色
+    #     [0.0, 100, 0.0],  # 高斯体 2: 绿色
+    #     [0.0, 0.0, 100],  # 高斯体 3: 蓝色
+    #     [100, 0.0, 0.0],  # 高斯体 1: 红色
+    #     [0.0, 100, 0.0],  # 高斯体 2: 绿色
+    #     [0.0, 0.0, 100],  # 高斯体 3: 蓝色
+    #     [100, 0.0, 0.0],  # 高斯体 1: 红色
+    #     [0.0, 100, 0.0],  # 高斯体 2: 绿色
+    #     [0.0, 0.0, 100],  # 高斯体 3: 蓝色
+    # ], dtype=np.float32)
+    #
+    # # 初始化球谐函数系数为全零，并设置零阶系数为所需颜色(固定颜色)
+    # shs = np.zeros((n, 16, 3), dtype=np.float32)
+    # shs[:, 0, :] = desired_colors  # 设置零阶系数
 
-    # 设置固定颜色（进一步调整以避免超出范围）
-    desired_colors = np.array([
-        [100, 0.0, 0.0],  # 高斯体 1: 红色
-        [0.0, 100, 0.0],  # 高斯体 2: 绿色
-        [0.0, 0.0, 100]  # 高斯体 3: 蓝色
-    ], dtype=np.float32)
+    n = 800
+    x_range = (-1.0, 1.0)
+    y_range = (-1.0, 1.0)
+    z_range = (5.0, 15.0)
+    np.random.seed(n)
+    x = np.random.uniform(low=x_range[0], high=x_range[1], size=n)
+    y = np.random.uniform(low=y_range[0], high=y_range[1], size=n)
+    z = np.random.uniform(low=z_range[0], high=z_range[1], size=n)
+    pts = np.stack([x, y, z], axis=-1).astype(np.float32)
+    shs = np.random.uniform(0,1,(n, 16, 3))
+    shs[:, 1:, :]=0
 
-    # 初始化球谐函数系数为全零，并设置零阶系数为所需颜色(固定颜色)
-    shs = np.zeros((n, 16, 3), dtype=np.float32)
-    shs[:, 0, :] = desired_colors  # 设置零阶系数
 
     # 设置其他高斯体属性
     opacities = np.ones((n, 1), dtype=np.float32)  # 透明度设为1
@@ -403,7 +434,7 @@ def create_rasterizer2(H, W ,tanfovx,tanfovy, bg, viewmatrix,projmatrix,cam_pos)
     )
     return GaussianRasterizer2(raster_settings=raster_settings)
 
-H, W = 100, 100
+H, W = 200, 200
 cam_pos, viewmatrix, tanfovx,tanfovy,projmatrix = setup_camera_settings()#相机参数
 
 pts,shs,opacities,scales,rotations,screenspace_points = setup_gaussian_params(projmatrix) #高斯参数
