@@ -902,8 +902,6 @@ renderCUDA(
 	// Gaussian is known from each pixel from the forward.
 	uint32_t contributor = toDo;
 	const int last_contributor = inside ? n_contrib[pix_id] : 0;
-	// if(pix_id == 0)
-	// 	printf("last_contributor is %d\n", last_contributor);
 
 	float accum_rec[C] = { 0 };
 
@@ -932,8 +930,6 @@ renderCUDA(
 		// 	dL_invdepth = dL_invdepths[pix_id];
 		if(dL_dout_depthptr)
 			dL_outdepth = dL_dout_depthptr[pix_id];
-
-		
 	}
 
 
@@ -943,7 +939,7 @@ renderCUDA(
     float medium_attn_pix[3] = {0};  //sigma_attn
 	float colors_enhance_pix[3] = {0};  //phi
     //float max_medium_attn_pix;
-	float latter_depth = 100.;
+	float latter_depth = 1000.f;
 
 	if (inside) {
         medium_rgb_pix[0] = medium_rgb[pix_id].x; medium_rgb_pix[1] = medium_rgb[pix_id].y; medium_rgb_pix[2] = medium_rgb[pix_id].z;
@@ -954,6 +950,7 @@ renderCUDA(
         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
     }
 
+	
 
 	float last_alpha = 0;
 	float last_color_obj[C] = { 0 };    //def : exp(-sigma^attn s_i)O_i phi
@@ -971,10 +968,6 @@ renderCUDA(
 	//assert(false);
 
 	// Traverse all Gaussians
-	// if(pix_id == 0)
-	// {
-	// 	printf("range is %d %d\n", range.x, range.y);
-	// }
 	for (int i = 0; i < rounds; i++, toDo -= BLOCK_SIZE)
 	{
 		// Load auxiliary data into shared memory, start in the BACK
@@ -1000,7 +993,7 @@ renderCUDA(
 			// Keep track of current Gaussian ID. Skip, if this one
 			// is behind the last contributor for this pixel.
 			contributor--;
-			if (pix_id == 0 )
+			//if (pix_id == 0 )
 // 				printf("\n\n\n , j is %d",j);
 			if (contributor >= last_contributor)
 				continue;
@@ -1013,12 +1006,15 @@ renderCUDA(
 			if (power > 0.0f)
 				continue;
 
-			const float G = exp(power);
+			const float G = __expf(power);
 			const float alpha = min(0.99f, con_o.w * G);  //2D alpha
 			if (alpha < 1.0f / 255.0f)
 				continue;
 
+			assert(abs(1-alpha) > 1e-3 && "alpha must be less than 1");
+
 			T = T / (1.f - alpha);   // T_iobj
+			
 			const float T_alpha = alpha * T;  //T_i*alpha_i
 
 			// Propagate gradients to per-Gaussian colors and keep
@@ -1030,18 +1026,21 @@ renderCUDA(
 
 			float cur_depth = collected_depths[j];
 
-			float exp_obj[3] , exp_bs[3] , exp_latter_bs[3];  //exp(-sigma^attn s_i)
-            exp_obj[0] = exp(-medium_attn_pix[0] * cur_depth);  //exp(-sigma^attn s_i)
-            exp_obj[1] = exp(-medium_attn_pix[1] * cur_depth);
-            exp_obj[2] = exp(-medium_attn_pix[2] * cur_depth);  
+			// assert(cur_depth >= 0 && "Depth must be positive");
+			// assert(latter_depth >= 0 && " latter Depth must be positive");
 
-			exp_bs[0] = exp(-medium_bs_pix[0] * cur_depth);  //exp(-sigma^attn s_i)
-            exp_bs[1] = exp(-medium_bs_pix[1] * cur_depth);
-            exp_bs[2] = exp(-medium_bs_pix[2] * cur_depth);  
+			float exp_obj[3] = {0} , exp_bs[3] = {0} , exp_latter_bs[3] = {0};  //exp(-sigma^attn s_i)
+            exp_obj[0] = __expf(-medium_attn_pix[0] * cur_depth);  //exp(-sigma^attn s_i)
+            exp_obj[1] = __expf(-medium_attn_pix[1] * cur_depth);
+            exp_obj[2] = __expf(-medium_attn_pix[2] * cur_depth);  
 
-			exp_latter_bs[0] = exp(-medium_bs_pix[0] * latter_depth);  //exp(-sigma^attn s_i-1)
-			exp_latter_bs[1] = exp(-medium_bs_pix[1] * latter_depth);
-			exp_latter_bs[2] = exp(-medium_bs_pix[2] * latter_depth);
+			exp_bs[0] = __expf(-medium_bs_pix[0] * cur_depth);  //exp(-sigma^attn s_i)
+            exp_bs[1] = __expf(-medium_bs_pix[1] * cur_depth);
+            exp_bs[2] = __expf(-medium_bs_pix[2] * cur_depth);  
+
+			exp_latter_bs[0] = __expf(-medium_bs_pix[0] * latter_depth);  //exp(-sigma^attn s_i-1)
+			exp_latter_bs[1] = __expf(-medium_bs_pix[1] * latter_depth);
+			exp_latter_bs[2] = __expf(-medium_bs_pix[2] * latter_depth);
 
 
 			for (int ch = 0; ch < C; ch++)
@@ -1060,22 +1059,15 @@ renderCUDA(
 				dL_dalpha += -(accum_rec_med[ch])/(1-alpha) * dL_dpixel2[ch];
 
 				atomicAdd(&(dL_dcolors[global_id * C + ch]),  dL_dpixel1[ch]*T_alpha*exp_obj[ch]*colors_enhance_pix[ch]);   // O_i
-				dL_dphi[ch] += dL_dpixel1[ch]*T_alpha*exp_obj[ch]*collected_colors[ch * BLOCK_SIZE + j];  //phi_obj only one in this pixel
-				dL_dsigma_attn[ch] += -dL_dpixel1[ch]*T_alpha*c_obj*cur_depth;  //sigma_attn
+				dL_dphi[ch] += dL_dpixel1[ch]*T_alpha*exp_obj[ch]*collected_colors[ch * BLOCK_SIZE + j] ;  //phi_obj only one in this pixel
+				dL_dsigma_attn[ch] -= dL_dpixel1[ch]*T_alpha*c_obj*cur_depth;  //sigma_attn
 				dL_dcmed[ch] += dL_dpixel2[ch]*latter_T*(exp_bs[ch] - exp_latter_bs[ch]);  //cmed
 				dL_dsigma_bs[ch] += dL_dpixel2[ch]*latter_T*medium_rgb_pix[ch]*(exp_latter_bs[ch]*latter_depth - exp_bs[ch]*cur_depth);  //sigma_bs
 
 
 				
 			}
-			// if(pix_id == 0)
-			// {
-			// 	printf("T is %f\n", T);
-			// 	printf("alpha is %f\n", alpha);
-			// 	printf("curdepth is %f\n", cur_depth);
-			// 	//printf("prevdepth is %f\n", prev_depth);
-			// 	printf("dL_dcmed is %f %f %f\n", dL_dcmed[0], dL_dcmed[1], dL_dcmed[2]);
-			// }
+			
 			// Propagate gradients from inverse depth to alphaas and
 			// per Gaussian inverse depths
 			if (dL_dout_depthptr)
@@ -1131,12 +1123,13 @@ renderCUDA(
 
 	if(inside)
 	{
+		assert(latter_depth >= 0 && " latter Depth must be positive");
 		float exp_bs[3];
-		exp_bs[0] = exp(-medium_bs_pix[0] * latter_depth);  //exp(-sigma^bs s_1)
-		exp_bs[1] = exp(-medium_bs_pix[1] * latter_depth);
-		exp_bs[2] = exp(-medium_bs_pix[2] * latter_depth);  
+		exp_bs[0] = __expf(-medium_bs_pix[0] * latter_depth);  //exp(-sigma^bs s_1)
+		exp_bs[1] = __expf(-medium_bs_pix[1] * latter_depth);
+		exp_bs[2] = __expf(-medium_bs_pix[2] * latter_depth);  
 		
-		assert(abs(latter_T - 1.0) < 1e-3);
+		// assert(abs(latter_T - 1.0) < 1e-3);
 
 		for(int ch = 0 ; ch < C ; ch ++)
 		{
