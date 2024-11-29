@@ -33,7 +33,7 @@ std::function<char*(size_t N)> resizeFunctional(torch::Tensor& t) {
     return lambda;
 }
 
-std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 RasterizeGaussiansCUDA_underwater(
 	const torch::Tensor& background, //1
 	const torch::Tensor& means3D,
@@ -74,6 +74,7 @@ RasterizeGaussiansCUDA_underwater(
   torch::Tensor out_image = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts); //初始化为0
   torch::Tensor out_color = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts); //初始化为0
   torch::Tensor out_med = torch::full({NUM_CHANNELS, H, W}, 0.0, float_opts); //初始化为0
+  torch::Tensor n_touched = torch::full({H, W}, 0, int_opts); //n_touched gaussian points touched in one pixel
   
 //   torch::Tensor out_invdepth = torch::full({0, H, W}, 0.0, float_opts); //初始化为0
 //   float* out_invdepthptr = nullptr;
@@ -127,6 +128,7 @@ RasterizeGaussiansCUDA_underwater(
 		out_color.contiguous().data_ptr<float>(),  // 3 H W
 		out_med.contiguous().data_ptr<float>(),  // 3 H W
 		out_depthptr,    // 1 H W
+		n_touched.contiguous().data_ptr<int>(),  // H W
 		viewmatrix.contiguous().data_ptr<float>(),
 		projmatrix.contiguous().data_ptr<float>(),
 		campos.contiguous().data_ptr<float>(),
@@ -139,7 +141,7 @@ RasterizeGaussiansCUDA_underwater(
 		debug);
   }
   //printf("ffff");
-  return std::make_tuple(rendered, out_image , out_color, out_med, radii, geomBuffer, binningBuffer, imgBuffer, out_depth );
+  return std::make_tuple(rendered, out_image , out_color, out_med, radii, geomBuffer, binningBuffer, imgBuffer, out_depth, n_touched );
 }
 
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, 

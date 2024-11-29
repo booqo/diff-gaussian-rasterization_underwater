@@ -51,6 +51,7 @@ namespace CudaRasterizer
 			float* out_clr,
 			float* out_med,
 			float*  depth_img,
+			int* n_touched,
 			const float* viewmatrix,
 			const float* projmatrix,
 			const float* cam_pos,

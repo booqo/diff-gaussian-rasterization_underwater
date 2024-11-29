@@ -218,6 +218,7 @@ int CudaRasterizer::Rasterizer::forward(
 	float* out_clr,
 	float* out_med,
 	float* depth_img,
+	int* n_touched,
 	const float* viewmatrix,
 	const float* projmatrix,
 	const float* cam_pos,
@@ -349,7 +350,8 @@ int CudaRasterizer::Rasterizer::forward(
 		out_img,
 		out_clr,
 		out_med,
-		depth_img), debug)
+		depth_img,
+		n_touched), debug)
 
 	return num_rendered;
 }

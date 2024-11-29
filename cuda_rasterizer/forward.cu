@@ -294,7 +294,8 @@ renderCUDA(
 	float* __restrict__ out_img,
     float* __restrict__ out_clr,
     float* __restrict__ out_med,
-    float* __restrict__ depth_im
+    float* __restrict__ depth_im,
+	int* __restrict__ n_touched
 	)
 {
 
@@ -356,6 +357,7 @@ renderCUDA(
 	float3 pix_out = {0.f, 0.f, 0.f};
     float3 pix_clr = {0.f, 0.f, 0.f};
     float3 pix_medium = {0.f, 0.f, 0.f};
+	int final_n_touched = 0;
 	float expected_depth = 0.0f;
 	//float expected_invdepth = 0.0f;
 
@@ -456,6 +458,7 @@ renderCUDA(
 			}
 
 
+			final_n_touched++;
 			
 
 			// Eq. (3) from 3D Gaussian splatting paper.
@@ -536,6 +539,7 @@ renderCUDA(
 		out_clr[pix_id] = pix_clr.x; out_clr[1*H*W + pix_id] = pix_clr.y; out_clr[2*H*W + pix_id] = pix_clr.z;
 		out_med[pix_id] = final_medium.x; out_med[1*H*W + pix_id] = final_medium.y; out_med[2*H*W + pix_id] = final_medium.z;
 		depth_im[pix_id] = expected_depth;//输出在这
+		n_touched[pix_id] = final_n_touched;
 
 	}
 }
@@ -560,7 +564,9 @@ void FORWARD::render(
 	float* out_img,
     float* out_clr,
     float* out_med,
-    float* depth_img )
+    float* depth_img,
+	int* n_touched
+	)
 {
 	renderCUDA<NUM_CHANNELS> << <grid, block >> > (
 		ranges,
@@ -581,7 +587,8 @@ void FORWARD::render(
 		out_img,
 		out_clr,
 		out_med,
-		depth_img);
+		depth_img,
+		n_touched);
 }
 
 void FORWARD::preprocess(int P, int D, int M,
