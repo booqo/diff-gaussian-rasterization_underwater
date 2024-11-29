@@ -940,7 +940,7 @@ renderCUDA(
 	float colors_enhance_pix[3] = {0};  //phi
 	float min_medium_attn_pix = 0;
     //float max_medium_attn_pix;
-	float latter_depth = 1000.f;
+	float latter_depth = 20.f;
 
 	if (inside) {
         medium_rgb_pix[0] = medium_rgb[pix_id].x; medium_rgb_pix[1] = medium_rgb[pix_id].y; medium_rgb_pix[2] = medium_rgb[pix_id].z;
@@ -948,6 +948,7 @@ renderCUDA(
         medium_attn_pix[0] = medium_attn[pix_id].x; medium_attn_pix[1] = medium_attn[pix_id].y; medium_attn_pix[2] = medium_attn[pix_id].z;
 		colors_enhance_pix[0] = colors_enhance[pix_id].x; colors_enhance_pix[1] = colors_enhance[pix_id].y; colors_enhance_pix[2] = colors_enhance[pix_id].z;  
         min_medium_attn_pix = std::min(medium_attn_pix[0], std::min(medium_attn_pix[1], medium_attn_pix[2]));
+		min_medium_attn_pix = std::min(0.f,min_medium_attn_pix);
 		// get the biggest one of medium_attn_pix xyz
         //max_medium_attn_pix = std::max(medium_attn_pix.x, std::max(medium_attn_pix.y, medium_attn_pix.z));
     }
@@ -1011,7 +1012,7 @@ renderCUDA(
 			const float G = __expf(power);
 			const float alpha = min(0.99f, con_o.w * G);  //2D alpha
 			float cur_depth = collected_depths[j];
-			if (alpha < 1.0f / 255.0f)
+			if (alpha*__expf(-min_medium_attn_pix*cur_depth) < 1.0f / 255.0f)
 				continue;
 
 			//assert(abs(1-alpha) > 1e-3 && "alpha must be less than 1");
