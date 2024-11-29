@@ -69,7 +69,8 @@ namespace FORWARD
 		float* out_img,
 		float* out_clr,
 		float* out_med,
-		float* depth_img);
+		float* depth_img,
+		int* n_touched);
 }
 
 
