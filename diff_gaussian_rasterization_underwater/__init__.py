@@ -113,7 +113,7 @@ class _RasterizeGaussians(torch.autograd.Function):
         return color_image , color_clr, color_cem , radii, depths, n_touched
 
     @staticmethod
-    def backward(ctx, grad_color_image , grad_color_clr, grad_color_cem , _ , grad_depths):
+    def backward(ctx, grad_color_image , grad_color_clr, grad_color_cem , _ , grad_depths , __):
 
         # Restore necessary values from context
         #pdb.set_trace()
