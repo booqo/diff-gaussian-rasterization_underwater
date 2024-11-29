@@ -122,6 +122,9 @@ class _RasterizeGaussians(torch.autograd.Function):
         colors_precomp, means3D, scales, rotations, cov3Ds_precomp, medium_rgb, medium_bs, medium_attn,  \
                               colors_enhance, radii, sh, opacities, geomBuffer, binningBuffer, imgBuffer = ctx.saved_tensors
 
+        # assert(medium_bs >= 0.0).all()
+        # assert(medium_attn >= 0.0).all()
+        # assert(medium_rgb >= 0.0).all()
         # Restructure args as C++ method expects them 对应c++RasterizeGaussiansBackwardCUDA_underwater 
         args = (raster_settings.bg,
                 means3D, 
