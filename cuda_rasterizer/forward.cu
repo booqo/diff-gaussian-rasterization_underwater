@@ -448,7 +448,8 @@ renderCUDA(
 			// Avoid numerical instabilities (see paper appendix). 
 			float alpha = min(0.99f, con_w * exp(power));
 
-			if (alpha*__expf(-min_medium_attn_pix*cur_depth) < 1.0f / 255.0f)
+// 			if (alpha*__expf(-min_medium_attn_pix*cur_depth) < 1.0f / 255.0f)
+			if (alpha< 1.0f / 255.0f)
 				continue;
 				
 			float test_T = T * (1 - alpha);  //T_(i+1)
@@ -522,7 +523,7 @@ renderCUDA(
 		float3 final_medium;
         // add medium scattering
         float3 exp_bs;
-		float latter_depth = 20.f;
+		float latter_depth = 10000.f;
         // const float depth = 10.f;
         exp_bs.x = __expf(-medium_bs_pix.x * prev_depth) - __expf(-medium_bs_pix.x * latter_depth);
         exp_bs.y = __expf(-medium_bs_pix.y * prev_depth) - __expf(-medium_bs_pix.y * latter_depth);
