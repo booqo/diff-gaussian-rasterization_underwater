@@ -448,10 +448,11 @@ renderCUDA(
 			// Avoid numerical instabilities (see paper appendix). 
 			float alpha = min(0.99f, con_w * exp(power));
 
-			// if (alpha*__expf(-min_medium_attn_pix*cur_depth) < 1.0f / 255.0f)
-			// 	continue;
-			if (alpha < 1.0f / 255.0f)
+			if (alpha*__expf(-min_medium_attn_pix*cur_depth) < 1.0f / 255.0f)
 				continue;
+			
+			// if (alpha < 1.0f / 255.0f)
+			// 	continue;
 				
 			float test_T = T * (1 - alpha);  //T_(i+1)
 			if (test_T < 0.0001f)

@@ -1012,11 +1012,11 @@ renderCUDA(
 			const float G = __expf(power);
 			const float alpha = min(0.99f, con_o.w * G);  //2D alpha
 			float cur_depth = collected_depths[j];
-			// if (alpha*__expf(-min_medium_attn_pix*cur_depth) < 1.0f / 255.0f)
-			// 	continue;
-
-			if (alpha < 1.0f / 255.0f)
+			if (alpha*__expf(-min_medium_attn_pix*cur_depth) < 1.0f / 255.0f)
 				continue;
+
+			// if (alpha < 1.0f / 255.0f)
+			// 	continue;
 
 			//assert(abs(1-alpha) > 1e-3 && "alpha must be less than 1");
 
